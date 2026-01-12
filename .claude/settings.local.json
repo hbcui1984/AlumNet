@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:doc.dcloud.net.cn)",
+      "Bash(wc:*)",
+      "Bash(find:*)"
+    ]
+  }
+}
