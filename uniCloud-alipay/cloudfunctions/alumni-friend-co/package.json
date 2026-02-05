@@ -4,7 +4,7 @@
   "description": "校友好友云对象 - 名片交换、好友管理",
   "main": "index.obj.js",
   "dependencies": {
-    "uni-id-common": "file:../common/uni-id-common"
+    "uni-id-common": "file:../../../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common"
   },
   "extensions": {
     "uni-cloud-jql": {}

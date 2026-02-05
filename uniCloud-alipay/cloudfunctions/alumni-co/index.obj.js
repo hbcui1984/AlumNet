@@ -40,7 +40,36 @@ const dbCmd = db.command
  * @property {string} realName - 真实姓名
  * @property {Education[]} educations - 教育经历
  * @property {string[]} [proofUrls] - 证明材料URL
+ * @property {string} [idCard] - 身份证号
+ * @property {string} [classTeacher] - 高三班主任（高中）
+ * @property {string} [middleSchool] - 初中毕业学校
+ * @property {string[]} [teachers] - 任课老师列表
+ * @property {string} [messageToSchool] - 对母校寄语
  */
+
+/**
+ * 生成校友卡号
+ * @param {string} enrollmentYear - 入学年份
+ * @param {number} sequence - 序号
+ * @returns {string} 校友卡号，格式：年份+8位序号，如 20150000055
+ */
+function generateAlumniCardNo(enrollmentYear, sequence) {
+  const paddedSequence = String(sequence).padStart(8, '0')
+  return `${enrollmentYear}${paddedSequence}`
+}
+
+/**
+ * 检查是否已登录（独立函数）
+ * @param {string} uid - 用户ID
+ */
+function checkLogin(uid) {
+  if (!uid) {
+    throw {
+      errCode: 'TOKEN_INVALID',
+      errMsg: '请先登录'
+    }
+  }
+}
 
 module.exports = {
   _before: async function() {
@@ -64,24 +93,11 @@ module.exports = {
   },
 
   /**
-   * 检查是否已登录
-   * @private
-   */
-  _checkLogin() {
-    if (!this.uid) {
-      throw {
-        errCode: 'TOKEN_INVALID',
-        errMsg: '请先登录'
-      }
-    }
-  },
-
-  /**
    * 获取当前用户的校友资料
    * @returns {Promise<Object>} 用户校友资料
    */
   async getMyProfile() {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     const userCollection = db.collection('uni-id-users')
     const res = await userCollection.doc(this.uid).field({
@@ -92,6 +108,7 @@ module.exports = {
       gender: 1,
       alumniStatus: 1,
       alumniVerifyTime: 1,
+      alumniCardNo: 1,
       educations: 1,
       currentCompany: 1,
       currentPosition: 1,
@@ -105,7 +122,12 @@ module.exports = {
       recommendCount: 1,
       friendCount: 1,
       mobile: 1,
-      email: 1
+      email: 1,
+      idCard: 1,
+      classTeacher: 1,
+      middleSchool: 1,
+      teachers: 1,
+      messageToSchool: 1
     }).get()
 
     if (!res.data || res.data.length === 0) {
@@ -127,13 +149,14 @@ module.exports = {
    * @returns {Promise<Object>} 更新结果
    */
   async updateMyProfile(data) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     // 允许更新的字段白名单
     const allowedFields = [
       'avatar', 'realName', 'educations', 'currentCompany',
       'currentPosition', 'industry', 'province', 'city',
-      'interests', 'bio', 'contactVisible', 'profileVisible'
+      'interests', 'bio', 'contactVisible', 'profileVisible',
+      'idCard', 'classTeacher', 'middleSchool', 'teachers', 'messageToSchool'
     ]
 
     // 过滤非法字段
@@ -235,9 +258,18 @@ module.exports = {
    * @returns {Promise<Object>} 提交结果
    */
   async submitVerification(data) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
-    const { realName, educations, proofUrls } = data
+    const {
+      realName,
+      educations,
+      proofUrls,
+      idCard,
+      classTeacher,
+      middleSchool,
+      teachers,
+      messageToSchool
+    } = data
 
     // 参数验证
     if (!realName || realName.length < 2 || realName.length > 20) {
@@ -277,6 +309,13 @@ module.exports = {
       alumniStatus: 0 // 待认证
     }
 
+    // 添加可选字段
+    if (idCard) updateData.idCard = idCard
+    if (classTeacher) updateData.classTeacher = classTeacher
+    if (middleSchool) updateData.middleSchool = middleSchool
+    if (teachers && teachers.length > 0) updateData.teachers = teachers
+    if (messageToSchool) updateData.messageToSchool = messageToSchool
+
     if (proofUrls && proofUrls.length > 0) {
       updateData.verifyProof = proofUrls
     }
@@ -296,11 +335,19 @@ module.exports = {
         updateData.alumniStatus = 1
         updateData.alumniVerifyTime = Date.now()
         updateData.recommendCount = recommendRes.total
+
+        // 生成校友卡号
+        const primaryEdu = educations.find(e => e.isPrimary) || educations[0]
+        updateData.alumniCardNo = await this._generateUniqueCardNo(primaryEdu.enrollmentYear)
       }
     } else if (!features.requireProof) {
       // 不需要证明材料，自动通过
       updateData.alumniStatus = 1
       updateData.alumniVerifyTime = Date.now()
+
+      // 生成校友卡号
+      const primaryEdu = educations.find(e => e.isPrimary) || educations[0]
+      updateData.alumniCardNo = await this._generateUniqueCardNo(primaryEdu.enrollmentYear)
     }
 
     await userCollection.doc(this.uid).update(updateData)
@@ -309,9 +356,39 @@ module.exports = {
       errCode: 0,
       errMsg: updateData.alumniStatus === 1 ? '认证通过' : '认证信息已提交，请等待审核',
       data: {
-        status: updateData.alumniStatus
+        status: updateData.alumniStatus,
+        alumniCardNo: updateData.alumniCardNo
       }
     }
+  },
+
+  /**
+   * 生成唯一的校友卡号
+   * @private
+   * @param {number} enrollmentYear - 入学年份
+   * @returns {Promise<string>} 校友卡号
+   */
+  async _generateUniqueCardNo(enrollmentYear) {
+    const userCollection = db.collection('uni-id-users')
+
+    // 查询该年份最大的卡号
+    const res = await userCollection
+      .where({
+        alumniCardNo: dbCmd.exists(true),
+        alumniCardNo: new RegExp(`^${enrollmentYear}`)
+      })
+      .orderBy('alumniCardNo', 'desc')
+      .limit(1)
+      .get()
+
+    let sequence = 1
+    if (res.data && res.data.length > 0) {
+      const lastCardNo = res.data[0].alumniCardNo
+      const lastSequence = parseInt(lastCardNo.substring(4))
+      sequence = lastSequence + 1
+    }
+
+    return generateAlumniCardNo(enrollmentYear, sequence)
   },
 
   /**
@@ -319,7 +396,7 @@ module.exports = {
    * @returns {Promise<Object>} 认证状态信息
    */
   async getVerificationStatus() {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     const userCollection = db.collection('uni-id-users')
     const res = await userCollection.doc(this.uid).field({
@@ -370,7 +447,7 @@ module.exports = {
    * @returns {Promise<Object>} 推荐结果
    */
   async recommendAlumni({ toUserId, message, relation }) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     if (!toUserId) {
       throw {
@@ -484,7 +561,7 @@ module.exports = {
    * @returns {Promise<Object>} 推荐列表
    */
   async getMyRecommendations() {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     const recommendCollection = db.collection('alumni-recommendations')
     const res = await recommendCollection
@@ -551,6 +628,65 @@ module.exports = {
     return {
       errCode: 0,
       data: configRes.data[0]
+    }
+  },
+
+  /**
+   * 获取校友卡信息
+   * @returns {Promise<Object>} 校友卡信息
+   */
+  async getAlumniCard() {
+    checkLogin(this.uid)
+
+    const userCollection = db.collection('uni-id-users')
+    const res = await userCollection.doc(this.uid).field({
+      _id: 1,
+      avatar: 1,
+      realName: 1,
+      alumniStatus: 1,
+      alumniCardNo: 1,
+      alumniVerifyTime: 1,
+      educations: 1
+    }).get()
+
+    if (!res.data || res.data.length === 0) {
+      throw {
+        errCode: 'USER_NOT_FOUND',
+        errMsg: '用户不存在'
+      }
+    }
+
+    const user = res.data[0]
+
+    if (user.alumniStatus !== 1) {
+      throw {
+        errCode: 'NOT_VERIFIED',
+        errMsg: '您尚未通过校友认证'
+      }
+    }
+
+    // 获取学校配置
+    const configRes = await this.getSchoolConfig()
+    const schoolConfig = configRes.data
+
+    // 获取主要学历
+    const primaryEdu = user.educations?.find(e => e.isPrimary) || user.educations?.[0]
+
+    return {
+      errCode: 0,
+      data: {
+        schoolName: schoolConfig.name,
+        schoolLogo: schoolConfig.logo,
+        realName: user.realName,
+        avatar: user.avatar,
+        alumniCardNo: user.alumniCardNo,
+        graduationYear: primaryEdu?.graduationYear,
+        enrollmentYear: primaryEdu?.enrollmentYear,
+        college: primaryEdu?.college,
+        major: primaryEdu?.major,
+        className: primaryEdu?.className,
+        verifyTime: user.alumniVerifyTime
+      }
     }
   },
 

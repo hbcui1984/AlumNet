@@ -38,6 +38,12 @@
 			}
 		},
 		{
+			"path": "pages/alumni/card/card",
+			"style": {
+				"navigationBarTitleText": "我的校友卡"
+			}
+		},
+		{
 			"path": "pages/alumni/requests/requests",
 			"style": {
 				"navigationBarTitleText": "名片请求"

@@ -16,6 +16,19 @@ const REQUEST_EXPIRE_DAYS = 7
  */
 const DEFAULT_PAGE_SIZE = 20
 
+/**
+ * 检查是否已登录（独立函数）
+ * @param {string} uid - 用户ID
+ */
+function checkLogin(uid) {
+  if (!uid) {
+    throw {
+      errCode: 'TOKEN_INVALID',
+      errMsg: '请先登录'
+    }
+  }
+}
+
 module.exports = {
   _before: async function() {
     this.clientInfo = this.getClientInfo()
@@ -35,19 +48,6 @@ module.exports = {
   },
 
   /**
-   * 检查是否已登录
-   * @private
-   */
-  _checkLogin() {
-    if (!this.uid) {
-      throw {
-        errCode: 'TOKEN_INVALID',
-        errMsg: '请先登录'
-      }
-    }
-  },
-
-  /**
    * 发送名片交换请求
    * @param {Object} params
    * @param {string} params.toUserId - 接收人ID
@@ -55,7 +55,7 @@ module.exports = {
    * @returns {Promise<Object>} 发送结果
    */
   async sendCardRequest({ toUserId, message }) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     if (!toUserId) {
       throw {
@@ -186,7 +186,7 @@ module.exports = {
    * @returns {Promise<Object>} 处理结果
    */
   async handleCardRequest({ requestId, action, rejectReason }) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     if (!requestId) {
       throw {
@@ -319,7 +319,7 @@ module.exports = {
    * @returns {Promise<Object>} 请求列表
    */
   async getReceivedRequests({ status, pageSize = DEFAULT_PAGE_SIZE, cursor } = {}) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     const limit = Math.min(Math.max(1, pageSize), 50)
 
@@ -410,7 +410,7 @@ module.exports = {
    * @returns {Promise<Object>} 请求列表
    */
   async getSentRequests({ status, pageSize = DEFAULT_PAGE_SIZE, cursor } = {}) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     const limit = Math.min(Math.max(1, pageSize), 50)
 
@@ -498,7 +498,7 @@ module.exports = {
    * @returns {Promise<Object>} 数量统计
    */
   async getPendingRequestCount() {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     const cardCollection = db.collection('alumni-card-requests')
     const res = await cardCollection.where({
@@ -524,7 +524,7 @@ module.exports = {
    * @returns {Promise<Object>} 好友列表
    */
   async getFriendList({ keyword, pageSize = DEFAULT_PAGE_SIZE, cursor } = {}) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     const limit = Math.min(Math.max(1, pageSize), 50)
 
@@ -666,7 +666,7 @@ module.exports = {
    * @returns {Promise<Object>} 设置结果
    */
   async setFriendRemark({ friendUserId, remark }) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     if (!friendUserId) {
       throw {
@@ -722,7 +722,7 @@ module.exports = {
    * @returns {Promise<Object>} 删除结果
    */
   async deleteFriend({ friendUserId }) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     if (!friendUserId) {
       throw {
@@ -807,7 +807,7 @@ module.exports = {
    * @returns {Promise<Object>} 撤回结果
    */
   async cancelCardRequest({ requestId }) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     if (!requestId) {
       throw {

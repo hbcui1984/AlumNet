@@ -82,6 +82,63 @@
         }
       }
     },
+    "idCard": {
+      "bsonType": "string",
+      "description": "身份证号（加密存储）",
+      "maxLength": 18,
+      "permission": {
+        "read": "doc._id == auth.uid || 'READ_UNI_ID_USERS' in auth.permission",
+        "write": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    },
+    "classTeacher": {
+      "bsonType": "string",
+      "description": "高三班主任姓名（针对高中）",
+      "maxLength": 20,
+      "permission": {
+        "read": "doc._id == auth.uid || 'READ_UNI_ID_USERS' in auth.permission",
+        "write": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    },
+    "middleSchool": {
+      "bsonType": "string",
+      "description": "初中毕业学校",
+      "maxLength": 100,
+      "permission": {
+        "read": true,
+        "write": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    },
+    "teachers": {
+      "bsonType": "array",
+      "description": "任课老师列表",
+      "permission": {
+        "read": "doc._id == auth.uid || 'READ_UNI_ID_USERS' in auth.permission",
+        "write": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission"
+      },
+      "items": {
+        "bsonType": "string",
+        "maxLength": 20
+      }
+    },
+    "messageToSchool": {
+      "bsonType": "string",
+      "description": "对母校寄语",
+      "maxLength": 500,
+      "permission": {
+        "read": true,
+        "write": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    },
+    "alumniCardNo": {
+      "bsonType": "string",
+      "description": "校友卡号（唯一标识）",
+      "maxLength": 20,
+      "permission": {
+        "read": true,
+        "write": "'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    },
     "currentCompany": {
       "bsonType": "string",
       "description": "当前公司",

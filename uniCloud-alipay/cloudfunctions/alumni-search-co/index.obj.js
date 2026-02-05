@@ -30,6 +30,19 @@ const DEFAULT_PAGE_SIZE = 20
  */
 const MAX_PAGE_SIZE = 50
 
+/**
+ * 检查是否已登录（独立函数）
+ * @param {string} uid - 用户ID
+ */
+function checkLogin(uid) {
+  if (!uid) {
+    throw {
+      errCode: 'TOKEN_INVALID',
+      errMsg: '请先登录'
+    }
+  }
+}
+
 module.exports = {
   _before: async function() {
     this.clientInfo = this.getClientInfo()
@@ -49,25 +62,12 @@ module.exports = {
   },
 
   /**
-   * 检查是否已登录
-   * @private
-   */
-  _checkLogin() {
-    if (!this.uid) {
-      throw {
-        errCode: 'TOKEN_INVALID',
-        errMsg: '请先登录'
-      }
-    }
-  },
-
-  /**
    * 搜索校友列表
    * @param {SearchParams} params - 搜索参数
    * @returns {Promise<Object>} 搜索结果
    */
   async searchAlumni(params = {}) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     const {
       enrollmentYear,
@@ -204,7 +204,7 @@ module.exports = {
    * @returns {Promise<Object>} 校友详情
    */
   async getAlumniDetail(userId) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     if (!userId) {
       throw {
@@ -425,7 +425,7 @@ module.exports = {
    * @returns {Promise<Object>} 同届校友列表
    */
   async getSameYearAlumni({ pageSize = 10, cursor } = {}) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     // 获取当前用户的入学年份
     const userCollection = db.collection('uni-id-users')
@@ -459,7 +459,7 @@ module.exports = {
    * @returns {Promise<Object>} 同城校友列表
    */
   async getSameCityAlumni({ pageSize = 10, cursor } = {}) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     // 获取当前用户的城市
     const userCollection = db.collection('uni-id-users')
@@ -491,7 +491,7 @@ module.exports = {
    * @returns {Promise<Object>} 同行业校友列表
    */
   async getSameIndustryAlumni({ pageSize = 10, cursor } = {}) {
-    this._checkLogin()
+    checkLogin(this.uid)
 
     // 获取当前用户的行业
     const userCollection = db.collection('uni-id-users')
