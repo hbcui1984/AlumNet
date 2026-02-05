@@ -1,0 +1,74 @@
+{
+  "bsonType": "object",
+  "required": ["organizationId", "userId", "role", "status"],
+  "permission": {
+    "read": "doc.userId == auth.uid",
+    "create": "auth.uid != null",
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "bsonType": "string"
+    },
+    "organizationId": {
+      "bsonType": "string",
+      "description": "组织ID",
+      "foreignKey": "alumni-organizations._id"
+    },
+    "userId": {
+      "bsonType": "string",
+      "description": "成员用户ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "role": {
+      "bsonType": "string",
+      "description": "角色: creator/admin/member",
+      "enum": ["creator", "admin", "member"],
+      "defaultValue": "member"
+    },
+    "title": {
+      "bsonType": "string",
+      "description": "职务头衔",
+      "maxLength": 50
+    },
+    "status": {
+      "bsonType": "int",
+      "description": "状态: 0待审核 1正常 2已退出 3已移除",
+      "enum": [0, 1, 2, 3],
+      "defaultValue": 0
+    },
+    "joinTime": {
+      "bsonType": "timestamp",
+      "description": "加入时间"
+    },
+    "createTime": {
+      "bsonType": "timestamp",
+      "description": "申请时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updateTime": {
+      "bsonType": "timestamp",
+      "description": "更新时间"
+    }
+  },
+  "indexes": [
+    {
+      "name": "idx_org_user",
+      "keyPath": ["organizationId", "userId"],
+      "unique": true
+    },
+    {
+      "name": "idx_user_status",
+      "keyPath": ["userId", "status"],
+      "unique": false
+    },
+    {
+      "name": "idx_org_role",
+      "keyPath": ["organizationId", "role", "status"],
+      "unique": false
+    }
+  ]
+}

@@ -1,5 +1,49 @@
 {
 	"pages": [{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "首页",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/alumni/list/list",
+			"style": {
+				"navigationBarTitleText": "找校友",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/alumni/verify/verify",
+			"style": {
+				"navigationBarTitleText": "校友认证"
+			}
+		},
+		{
+			"path": "pages/alumni/detail/detail",
+			"style": {
+				"navigationBarTitleText": "校友详情"
+			}
+		},
+		{
+			"path": "pages/alumni/profile/profile",
+			"style": {
+				"navigationBarTitleText": "编辑资料"
+			}
+		},
+		{
+			"path": "pages/alumni/friends/friends",
+			"style": {
+				"navigationBarTitleText": "我的好友"
+			}
+		},
+		{
+			"path": "pages/alumni/requests/requests",
+			"style": {
+				"navigationBarTitleText": "名片请求"
+			}
+		},
+		{
 			"path": "pages/list/list",
 			"style": {
 				// #ifndef APP
@@ -240,31 +284,32 @@
 		"current": 1
 	},
 	"tabBar": {
-		"color": "#7A7E83",
-		"selectedColor": "#007AFF",
+		"custom": true,
+		"color": "#999999",
+		"selectedColor": "#2B5CE6",
 		"borderStyle": "black",
 		"backgroundColor": "#FFFFFF",
 		"list": [{
-			"pagePath": "pages/list/list",
-			"iconPath": "static/tabbar/list.png",
-			"selectedIconPath": "static/tabbar/list_active.png",
-			"text": "列表"
+			"pagePath": "pages/index/index",
+			"text": "首页"
 		}, {
-			"pagePath": "pages/grid/grid",
-			"iconPath": "static/tabbar/grid.png",
-			"selectedIconPath": "static/tabbar/grid_active.png",
-			"text": "宫格"
+			"pagePath": "pages/alumni/list/list",
+			"text": "找校友"
 		}, {
 			"pagePath": "pages/ucenter/ucenter",
-			"iconPath": "static/tabbar/me.png",
-			"selectedIconPath": "static/tabbar/me_active.png",
 			"text": "我的"
 		}]
 	},
 	"uniIdRouter": {
 		"loginPage": "uni_modules/uni-id-pages/pages/login/login-withoutpwd",
 		"needLogin": [
-			"/uni_modules/uni-id-pages/pages/userinfo/userinfo"
+			"/uni_modules/uni-id-pages/pages/userinfo/userinfo",
+			"/pages/alumni/verify/verify",
+			"/pages/alumni/list/list",
+			"/pages/alumni/detail/detail",
+			"/pages/alumni/profile/profile",
+			"/pages/alumni/friends/friends",
+			"/pages/alumni/requests/requests"
 		],
 		"resToLogin": true
 	}

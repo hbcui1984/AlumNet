@@ -1,0 +1,16 @@
+{
+  "name": "alumni-friend-co",
+  "version": "1.0.0",
+  "description": "校友好友云对象 - 名片交换、好友管理",
+  "main": "index.obj.js",
+  "dependencies": {
+    "uni-id-common": "file:../common/uni-id-common"
+  },
+  "extensions": {
+    "uni-cloud-jql": {}
+  },
+  "cloudfunction-config": {
+    "memorySize": 512,
+    "timeout": 30
+  }
+}

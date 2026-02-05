@@ -1,0 +1,60 @@
+{
+  "bsonType": "object",
+  "required": ["fromUserId", "toUserId", "status"],
+  "permission": {
+    "read": "doc.fromUserId == auth.uid || doc.toUserId == auth.uid",
+    "create": "auth.uid != null",
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "bsonType": "string"
+    },
+    "fromUserId": {
+      "bsonType": "string",
+      "description": "推荐人ID（已认证校友）",
+      "foreignKey": "uni-id-users._id"
+    },
+    "toUserId": {
+      "bsonType": "string",
+      "description": "被推荐人ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "message": {
+      "bsonType": "string",
+      "description": "推荐说明",
+      "maxLength": 500
+    },
+    "relation": {
+      "bsonType": "string",
+      "description": "与被推荐人关系",
+      "maxLength": 50
+    },
+    "status": {
+      "bsonType": "int",
+      "description": "状态: 0有效 1已撤销",
+      "enum": [0, 1],
+      "defaultValue": 0
+    },
+    "createTime": {
+      "bsonType": "timestamp",
+      "description": "推荐时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  },
+  "indexes": [
+    {
+      "name": "idx_to_user",
+      "keyPath": ["toUserId", "status"],
+      "unique": false
+    },
+    {
+      "name": "idx_from_user",
+      "keyPath": ["fromUserId", "createTime"],
+      "unique": false
+    }
+  ]
+}

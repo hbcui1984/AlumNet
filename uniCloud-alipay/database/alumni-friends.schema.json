@@ -1,0 +1,74 @@
+{
+  "bsonType": "object",
+  "required": ["userIdA", "userIdB", "status"],
+  "permission": {
+    "read": "doc.userIdA == auth.uid || doc.userIdB == auth.uid",
+    "create": false,
+    "update": "doc.userIdA == auth.uid || doc.userIdB == auth.uid",
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "bsonType": "string"
+    },
+    "userIdA": {
+      "bsonType": "string",
+      "description": "用户A的ID（按字母序较小）",
+      "foreignKey": "uni-id-users._id"
+    },
+    "userIdB": {
+      "bsonType": "string",
+      "description": "用户B的ID（按字母序较大）",
+      "foreignKey": "uni-id-users._id"
+    },
+    "remarkA": {
+      "bsonType": "string",
+      "description": "A给B的备注名",
+      "maxLength": 50
+    },
+    "remarkB": {
+      "bsonType": "string",
+      "description": "B给A的备注名",
+      "maxLength": 50
+    },
+    "sourceRequestId": {
+      "bsonType": "string",
+      "description": "来源名片交换请求ID",
+      "foreignKey": "alumni-card-requests._id"
+    },
+    "status": {
+      "bsonType": "int",
+      "description": "状态: 1正常 2已解除(A删B) 3已解除(B删A) 4双向解除",
+      "enum": [1, 2, 3, 4],
+      "defaultValue": 1
+    },
+    "createTime": {
+      "bsonType": "timestamp",
+      "description": "成为好友时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updateTime": {
+      "bsonType": "timestamp",
+      "description": "更新时间"
+    }
+  },
+  "indexes": [
+    {
+      "name": "idx_friend_pair",
+      "keyPath": ["userIdA", "userIdB"],
+      "unique": true
+    },
+    {
+      "name": "idx_userA_status",
+      "keyPath": ["userIdA", "status"],
+      "unique": false
+    },
+    {
+      "name": "idx_userB_status",
+      "keyPath": ["userIdB", "status"],
+      "unique": false
+    }
+  ]
+}

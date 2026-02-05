@@ -1,0 +1,172 @@
+{
+  "bsonType": "object",
+  "required": ["title", "organizerId", "startTime", "status"],
+  "permission": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "bsonType": "string"
+    },
+    "title": {
+      "bsonType": "string",
+      "description": "活动标题",
+      "maxLength": 100
+    },
+    "cover": {
+      "bsonType": "string",
+      "description": "封面图片URL"
+    },
+    "description": {
+      "bsonType": "string",
+      "description": "活动描述"
+    },
+    "content": {
+      "bsonType": "string",
+      "description": "活动详情（富文本）"
+    },
+    "organizerId": {
+      "bsonType": "string",
+      "description": "发起人/组织ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "organizerType": {
+      "bsonType": "string",
+      "description": "发起者类型: user/organization",
+      "enum": ["user", "organization"],
+      "defaultValue": "user"
+    },
+    "organizationId": {
+      "bsonType": "string",
+      "description": "关联组织ID",
+      "foreignKey": "alumni-organizations._id"
+    },
+    "type": {
+      "bsonType": "string",
+      "description": "活动类型: online/offline/hybrid",
+      "enum": ["online", "offline", "hybrid"]
+    },
+    "location": {
+      "bsonType": "object",
+      "description": "活动地点",
+      "properties": {
+        "name": {
+          "bsonType": "string",
+          "description": "地点名称"
+        },
+        "address": {
+          "bsonType": "string",
+          "description": "详细地址"
+        },
+        "latitude": {
+          "bsonType": "double",
+          "description": "纬度"
+        },
+        "longitude": {
+          "bsonType": "double",
+          "description": "经度"
+        }
+      }
+    },
+    "onlineLink": {
+      "bsonType": "string",
+      "description": "线上活动链接"
+    },
+    "startTime": {
+      "bsonType": "timestamp",
+      "description": "开始时间"
+    },
+    "endTime": {
+      "bsonType": "timestamp",
+      "description": "结束时间"
+    },
+    "signupDeadline": {
+      "bsonType": "timestamp",
+      "description": "报名截止时间"
+    },
+    "maxParticipants": {
+      "bsonType": "int",
+      "description": "人数上限，0表示不限"
+    },
+    "currentParticipants": {
+      "bsonType": "int",
+      "description": "当前报名人数",
+      "defaultValue": 0
+    },
+    "fee": {
+      "bsonType": "double",
+      "description": "费用（元），0表示免费",
+      "defaultValue": 0
+    },
+    "targetAudience": {
+      "bsonType": "object",
+      "description": "目标受众限制",
+      "properties": {
+        "enrollmentYears": {
+          "bsonType": "array",
+          "description": "限定入学年份",
+          "items": { "bsonType": "int" }
+        },
+        "colleges": {
+          "bsonType": "array",
+          "description": "限定学院",
+          "items": { "bsonType": "string" }
+        },
+        "cities": {
+          "bsonType": "array",
+          "description": "限定城市",
+          "items": { "bsonType": "string" }
+        }
+      }
+    },
+    "status": {
+      "bsonType": "int",
+      "description": "状态: 0草稿 1报名中 2报名结束 3进行中 4已结束 5已取消",
+      "enum": [0, 1, 2, 3, 4, 5],
+      "defaultValue": 0
+    },
+    "viewCount": {
+      "bsonType": "int",
+      "description": "浏览次数",
+      "defaultValue": 0
+    },
+    "tags": {
+      "bsonType": "array",
+      "description": "活动标签",
+      "items": {
+        "bsonType": "string"
+      }
+    },
+    "createTime": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updateTime": {
+      "bsonType": "timestamp",
+      "description": "更新时间"
+    }
+  },
+  "indexes": [
+    {
+      "name": "idx_status_start",
+      "keyPath": ["status", "startTime"],
+      "unique": false
+    },
+    {
+      "name": "idx_organizer",
+      "keyPath": ["organizerId", "createTime"],
+      "unique": false
+    },
+    {
+      "name": "idx_organization",
+      "keyPath": ["organizationId", "status"],
+      "unique": false
+    }
+  ]
+}

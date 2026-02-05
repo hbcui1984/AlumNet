@@ -1,0 +1,198 @@
+{
+  "bsonType": "object",
+  "properties": {
+    "realName": {
+      "bsonType": "string",
+      "description": "真实姓名",
+      "maxLength": 20,
+      "permission": {
+        "read": true,
+        "write": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    },
+    "alumniStatus": {
+      "bsonType": "int",
+      "description": "校友认证状态: 0待认证 1已认证 2已拒绝",
+      "enum": [
+        { "text": "待认证", "value": 0 },
+        { "text": "已认证", "value": 1 },
+        { "text": "已拒绝", "value": 2 }
+      ],
+      "defaultValue": 0,
+      "permission": {
+        "read": true,
+        "write": "'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    },
+    "alumniVerifyTime": {
+      "bsonType": "timestamp",
+      "description": "校友认证通过时间",
+      "permission": {
+        "read": true,
+        "write": "'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    },
+    "educations": {
+      "bsonType": "array",
+      "description": "教育经历列表",
+      "permission": {
+        "read": true,
+        "write": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission"
+      },
+      "items": {
+        "bsonType": "object",
+        "properties": {
+          "degree": {
+            "bsonType": "string",
+            "description": "学历: bachelor/master/doctor/highschool/middleschool"
+          },
+          "enrollmentYear": {
+            "bsonType": "int",
+            "description": "入学年份"
+          },
+          "graduationYear": {
+            "bsonType": "int",
+            "description": "毕业年份"
+          },
+          "college": {
+            "bsonType": "string",
+            "description": "学院（大学）"
+          },
+          "major": {
+            "bsonType": "string",
+            "description": "专业（大学）"
+          },
+          "grade": {
+            "bsonType": "string",
+            "description": "年级（中学）"
+          },
+          "className": {
+            "bsonType": "string",
+            "description": "班级"
+          },
+          "studentId": {
+            "bsonType": "string",
+            "description": "学号"
+          },
+          "isPrimary": {
+            "bsonType": "bool",
+            "description": "是否主要学历",
+            "defaultValue": false
+          }
+        }
+      }
+    },
+    "currentCompany": {
+      "bsonType": "string",
+      "description": "当前公司",
+      "maxLength": 100,
+      "permission": {
+        "read": true,
+        "write": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    },
+    "currentPosition": {
+      "bsonType": "string",
+      "description": "当前职位",
+      "maxLength": 50,
+      "permission": {
+        "read": true,
+        "write": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    },
+    "industry": {
+      "bsonType": "string",
+      "description": "所在行业",
+      "maxLength": 50,
+      "permission": {
+        "read": true,
+        "write": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    },
+    "city": {
+      "bsonType": "string",
+      "description": "所在城市",
+      "maxLength": 50,
+      "permission": {
+        "read": true,
+        "write": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    },
+    "province": {
+      "bsonType": "string",
+      "description": "所在省份",
+      "maxLength": 50,
+      "permission": {
+        "read": true,
+        "write": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    },
+    "interests": {
+      "bsonType": "array",
+      "description": "兴趣标签",
+      "permission": {
+        "read": true,
+        "write": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission"
+      },
+      "items": {
+        "bsonType": "string"
+      }
+    },
+    "bio": {
+      "bsonType": "string",
+      "description": "个人简介",
+      "maxLength": 500,
+      "permission": {
+        "read": true,
+        "write": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    },
+    "contactVisible": {
+      "bsonType": "bool",
+      "description": "联系方式是否对好友可见",
+      "defaultValue": true,
+      "permission": {
+        "read": "doc._id == auth.uid",
+        "write": "doc._id == auth.uid"
+      }
+    },
+    "profileVisible": {
+      "bsonType": "bool",
+      "description": "个人资料是否在校友列表可见",
+      "defaultValue": true,
+      "permission": {
+        "read": "doc._id == auth.uid",
+        "write": "doc._id == auth.uid"
+      }
+    },
+    "verifyProof": {
+      "bsonType": "array",
+      "description": "认证证明材料URL",
+      "permission": {
+        "read": "doc._id == auth.uid || 'READ_UNI_ID_USERS' in auth.permission",
+        "write": "doc._id == auth.uid || 'UPDATE_UNI_ID_USERS' in auth.permission"
+      },
+      "items": {
+        "bsonType": "string"
+      }
+    },
+    "recommendCount": {
+      "bsonType": "int",
+      "description": "获得推荐数",
+      "defaultValue": 0,
+      "permission": {
+        "read": true,
+        "write": "'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    },
+    "friendCount": {
+      "bsonType": "int",
+      "description": "好友数量",
+      "defaultValue": 0,
+      "permission": {
+        "read": true,
+        "write": "'UPDATE_UNI_ID_USERS' in auth.permission"
+      }
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "bsonType": "object",
+  "required": ["type", "items"],
+  "permission": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "bsonType": "string",
+      "description": "字典ID，如 dict_industries"
+    },
+    "type": {
+      "bsonType": "string",
+      "description": "字典类型: industry/interest/city/degree"
+    },
+    "items": {
+      "bsonType": "array",
+      "description": "字典项列表",
+      "items": {
+        "bsonType": "object",
+        "required": ["value", "label"],
+        "properties": {
+          "value": {
+            "bsonType": "string",
+            "description": "字典值"
+          },
+          "label": {
+            "bsonType": "string",
+            "description": "显示文本"
+          },
+          "sort": {
+            "bsonType": "int",
+            "description": "排序号"
+          },
+          "enabled": {
+            "bsonType": "bool",
+            "description": "是否启用",
+            "defaultValue": true
+          }
+        }
+      }
+    },
+    "createTime": {
+      "bsonType": "timestamp",
+      "description": "创建时间"
+    },
+    "updateTime": {
+      "bsonType": "timestamp",
+      "description": "更新时间"
+    }
+  }
+}

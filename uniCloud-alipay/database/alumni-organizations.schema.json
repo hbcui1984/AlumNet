@@ -1,0 +1,117 @@
+{
+  "bsonType": "object",
+  "required": ["name", "type", "creatorId", "status"],
+  "permission": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "bsonType": "string"
+    },
+    "name": {
+      "bsonType": "string",
+      "description": "组织名称",
+      "maxLength": 50
+    },
+    "type": {
+      "bsonType": "string",
+      "description": "组织类型: regional/industry/college/interest",
+      "enum": ["regional", "industry", "college", "interest"]
+    },
+    "logo": {
+      "bsonType": "string",
+      "description": "组织Logo URL"
+    },
+    "cover": {
+      "bsonType": "string",
+      "description": "封面图片URL"
+    },
+    "description": {
+      "bsonType": "string",
+      "description": "组织简介",
+      "maxLength": 1000
+    },
+    "announcement": {
+      "bsonType": "string",
+      "description": "组织公告",
+      "maxLength": 500
+    },
+    "creatorId": {
+      "bsonType": "string",
+      "description": "创建者ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "region": {
+      "bsonType": "object",
+      "description": "地区信息（地方分会）",
+      "properties": {
+        "province": { "bsonType": "string" },
+        "city": { "bsonType": "string" },
+        "district": { "bsonType": "string" }
+      }
+    },
+    "industry": {
+      "bsonType": "string",
+      "description": "所属行业（行业分会）"
+    },
+    "college": {
+      "bsonType": "string",
+      "description": "所属学院（院系分会）"
+    },
+    "interest": {
+      "bsonType": "string",
+      "description": "兴趣主题（兴趣分会）"
+    },
+    "memberCount": {
+      "bsonType": "int",
+      "description": "成员数量",
+      "defaultValue": 0
+    },
+    "activityCount": {
+      "bsonType": "int",
+      "description": "活动数量",
+      "defaultValue": 0
+    },
+    "status": {
+      "bsonType": "int",
+      "description": "状态: 0待审核 1正常 2已解散 3已冻结",
+      "enum": [0, 1, 2, 3],
+      "defaultValue": 0
+    },
+    "verifyTime": {
+      "bsonType": "timestamp",
+      "description": "审核通过时间"
+    },
+    "createTime": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updateTime": {
+      "bsonType": "timestamp",
+      "description": "更新时间"
+    }
+  },
+  "indexes": [
+    {
+      "name": "idx_type_status",
+      "keyPath": ["type", "status"],
+      "unique": false
+    },
+    {
+      "name": "idx_region",
+      "keyPath": ["region.province", "region.city", "status"],
+      "unique": false
+    },
+    {
+      "name": "idx_creator",
+      "keyPath": ["creatorId"],
+      "unique": false
+    }
+  ]
+}

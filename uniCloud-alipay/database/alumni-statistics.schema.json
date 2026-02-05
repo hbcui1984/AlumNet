@@ -1,0 +1,64 @@
+{
+  "bsonType": "object",
+  "required": ["type", "key"],
+  "permission": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "bsonType": "string",
+      "description": "统计ID，格式: type_key_date"
+    },
+    "type": {
+      "bsonType": "string",
+      "description": "统计类型: enrollment_year/industry/city/college/interest/daily",
+      "enum": ["enrollment_year", "industry", "city", "college", "interest", "daily"]
+    },
+    "key": {
+      "bsonType": "string",
+      "description": "统计键值（年份/行业/城市等）"
+    },
+    "date": {
+      "bsonType": "string",
+      "description": "统计日期（daily类型使用）"
+    },
+    "count": {
+      "bsonType": "int",
+      "description": "数量",
+      "defaultValue": 0
+    },
+    "verifiedCount": {
+      "bsonType": "int",
+      "description": "已认证数量",
+      "defaultValue": 0
+    },
+    "activeCount": {
+      "bsonType": "int",
+      "description": "活跃数量（30天内登录）",
+      "defaultValue": 0
+    },
+    "extra": {
+      "bsonType": "object",
+      "description": "扩展数据"
+    },
+    "updateTime": {
+      "bsonType": "timestamp",
+      "description": "更新时间"
+    }
+  },
+  "indexes": [
+    {
+      "name": "idx_type_key",
+      "keyPath": ["type", "key"],
+      "unique": true
+    },
+    {
+      "name": "idx_type_count",
+      "keyPath": ["type", "count"],
+      "unique": false
+    }
+  ]
+}

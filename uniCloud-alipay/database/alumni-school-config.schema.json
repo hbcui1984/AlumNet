@@ -1,0 +1,103 @@
+{
+  "bsonType": "object",
+  "required": [],
+  "permission": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "bsonType": "string",
+      "description": "配置ID，固定为 school_config"
+    },
+    "name": {
+      "bsonType": "string",
+      "description": "学校名称"
+    },
+    "shortName": {
+      "bsonType": "string",
+      "description": "学校简称"
+    },
+    "type": {
+      "bsonType": "string",
+      "enum": ["university", "highschool", "middleschool"],
+      "description": "学校类型"
+    },
+    "logo": {
+      "bsonType": "string",
+      "description": "学校Logo URL"
+    },
+    "appName": {
+      "bsonType": "string",
+      "description": "小程序名称"
+    },
+    "theme": {
+      "bsonType": "object",
+      "description": "主题配置",
+      "properties": {
+        "primaryColor": { "bsonType": "string" },
+        "primaryLight": { "bsonType": "string" },
+        "primaryDark": { "bsonType": "string" },
+        "primaryRgb": { "bsonType": "string" },
+        "secondaryColor": { "bsonType": "string" },
+        "accentColor": { "bsonType": "string" }
+      }
+    },
+    "branding": {
+      "bsonType": "object",
+      "description": "品牌配置",
+      "properties": {
+        "slogan": { "bsonType": "string" },
+        "welcomeText": { "bsonType": "string" },
+        "copyrightText": { "bsonType": "string" }
+      }
+    },
+    "degrees": {
+      "bsonType": "array",
+      "description": "支持的学历层次（大学）",
+      "items": { "bsonType": "string" }
+    },
+    "colleges": {
+      "bsonType": "array",
+      "description": "学院列表（大学）",
+      "items": {
+        "bsonType": "object",
+        "properties": {
+          "name": { "bsonType": "string" },
+          "majors": {
+            "bsonType": "array",
+            "items": { "bsonType": "string" }
+          }
+        }
+      }
+    },
+    "grades": {
+      "bsonType": "array",
+      "description": "年级列表（中学）",
+      "items": { "bsonType": "string" }
+    },
+    "features": {
+      "bsonType": "object",
+      "description": "功能开关",
+      "properties": {
+        "enableDonation": { "bsonType": "bool" },
+        "enableMap": { "bsonType": "bool" },
+        "enableActivity": { "bsonType": "bool" },
+        "enableOrganization": { "bsonType": "bool" },
+        "enableRecommendVerify": { "bsonType": "bool" },
+        "recommendCount": { "bsonType": "int" },
+        "requireProof": { "bsonType": "bool" }
+      }
+    },
+    "createTime": {
+      "bsonType": "timestamp",
+      "description": "创建时间"
+    },
+    "updateTime": {
+      "bsonType": "timestamp",
+      "description": "更新时间"
+    }
+  }
+}

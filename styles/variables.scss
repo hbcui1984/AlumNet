@@ -1,0 +1,74 @@
+/**
+ * CSS 变量定义 - 主题换肤基础
+ * 所有颜色、间距、字体等统一在此定义
+ */
+
+:root {
+  // ==================== 品牌色 ====================
+  --primary-color: #2B5CE6;           // 主色调
+  --primary-light: #5B7FED;           // 主色调-浅
+  --primary-dark: #1E3FA8;            // 主色调-深
+  --primary-rgb: 43, 92, 230;         // 主色调RGB值（用于透明度）
+
+  --secondary-color: #F39C12;         // 辅助色（强调、徽章）
+  --accent-color: #27AE60;            // 点缀色（成功、在线）
+
+  // ==================== 功能色 ====================
+  --success-color: #27AE60;           // 成功
+  --warning-color: #F39C12;           // 警告
+  --error-color: #E74C3C;             // 错误
+  --info-color: #3498DB;              // 信息
+
+  // ==================== 中性色 ====================
+  --text-primary: #1A1A1A;            // 主要文字
+  --text-secondary: #666666;          // 次要文字
+  --text-placeholder: #999999;        // 占位文字
+  --text-disabled: #CCCCCC;           // 禁用文字
+  --text-inverse: #FFFFFF;            // 反色文字（深色背景上）
+
+  // ==================== 背景色 ====================
+  --bg-page: #F5F7FA;                 // 页面背景
+  --bg-card: #FFFFFF;                 // 卡片背景
+  --bg-hover: #F0F2F5;                // 悬停背景
+  --bg-active: #E8ECF0;               // 激活背景
+  --bg-mask: rgba(0, 0, 0, 0.5);      // 遮罩背景
+
+  // ==================== 边框色 ====================
+  --border-color: #E8E8E8;            // 普通边框
+  --border-light: #F0F0F0;            // 浅色边框
+  --divider-color: #EEEEEE;           // 分割线
+
+  // ==================== 渐变 ====================
+  --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+
+  // ==================== 特殊场景 ====================
+  --verified-color: #2B5CE6;          // 认证标识色
+  --online-color: #27AE60;            // 在线状态色
+  --vip-color: #F39C12;               // VIP/特殊身份色
+
+  // ==================== 圆角 ====================
+  --radius-sm: 8rpx;                  // 小圆角（按钮、输入框）
+  --radius-md: 16rpx;                 // 中圆角（卡片）
+  --radius-lg: 24rpx;                 // 大圆角（弹窗）
+  --radius-full: 9999rpx;             // 全圆角（标签、胶囊）
+
+  // ==================== 间距 ====================
+  --spacing-xs: 8rpx;
+  --spacing-sm: 16rpx;
+  --spacing-md: 24rpx;
+  --spacing-lg: 32rpx;
+  --spacing-xl: 48rpx;
+
+  // ==================== 字体大小 ====================
+  --font-size-xs: 22rpx;              // 小字（标签、角标）
+  --font-size-sm: 24rpx;              // 辅助文字
+  --font-size-base: 28rpx;            // 正文
+  --font-size-md: 30rpx;              // 稍大正文
+  --font-size-lg: 34rpx;              // 标题
+  --font-size-xl: 40rpx;              // 大标题
+
+  // ==================== 阴影 ====================
+  --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
+}

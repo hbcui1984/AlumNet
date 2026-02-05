@@ -1,0 +1,73 @@
+{
+  "bsonType": "object",
+  "required": ["fromUserId", "toUserId", "status"],
+  "permission": {
+    "read": "doc.fromUserId == auth.uid || doc.toUserId == auth.uid",
+    "create": "auth.uid != null",
+    "update": "doc.toUserId == auth.uid",
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "bsonType": "string"
+    },
+    "fromUserId": {
+      "bsonType": "string",
+      "description": "发起人ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "toUserId": {
+      "bsonType": "string",
+      "description": "接收人ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "message": {
+      "bsonType": "string",
+      "description": "请求留言",
+      "maxLength": 200
+    },
+    "status": {
+      "bsonType": "int",
+      "description": "状态: 0待处理 1已同意 2已拒绝 3已过期",
+      "enum": [0, 1, 2, 3],
+      "defaultValue": 0
+    },
+    "rejectReason": {
+      "bsonType": "string",
+      "description": "拒绝原因",
+      "maxLength": 200
+    },
+    "handleTime": {
+      "bsonType": "timestamp",
+      "description": "处理时间"
+    },
+    "expireTime": {
+      "bsonType": "timestamp",
+      "description": "过期时间"
+    },
+    "createTime": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  },
+  "indexes": [
+    {
+      "name": "idx_to_user_status",
+      "keyPath": ["toUserId", "status", "createTime"],
+      "unique": false
+    },
+    {
+      "name": "idx_from_user_status",
+      "keyPath": ["fromUserId", "status", "createTime"],
+      "unique": false
+    },
+    {
+      "name": "idx_expire",
+      "keyPath": ["status", "expireTime"],
+      "unique": false
+    }
+  ]
+}
