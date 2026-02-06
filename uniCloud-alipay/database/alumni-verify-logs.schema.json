@@ -1,0 +1,77 @@
+{
+  "bsonType": "object",
+  "required": ["userId", "method", "result"],
+  "permission": {
+    "read": "doc.userId == auth.uid || 'admin' in auth.role",
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "bsonType": "string"
+    },
+    "userId": {
+      "bsonType": "string",
+      "description": "被认证用户ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "method": {
+      "bsonType": "string",
+      "description": "认证方式: admin-管理员审核, recommend-校友推荐",
+      "enum": ["admin", "recommend"]
+    },
+    "result": {
+      "bsonType": "string",
+      "description": "认证结果: approved-通过, rejected-拒绝",
+      "enum": ["approved", "rejected"]
+    },
+    "operatorId": {
+      "bsonType": "string",
+      "description": "操作人ID（管理员审核时为管理员ID）",
+      "foreignKey": "uni-id-users._id"
+    },
+    "lastRecommenderId": {
+      "bsonType": "string",
+      "description": "最后一个推荐人ID（推荐认证时）",
+      "foreignKey": "uni-id-users._id"
+    },
+    "recommendCount": {
+      "bsonType": "int",
+      "description": "推荐人数（推荐认证时）"
+    },
+    "requiredCount": {
+      "bsonType": "int",
+      "description": "所需推荐人数"
+    },
+    "rejectReason": {
+      "bsonType": "string",
+      "description": "拒绝原因",
+      "maxLength": 500
+    },
+    "remark": {
+      "bsonType": "string",
+      "description": "备注",
+      "maxLength": 500
+    },
+    "createTime": {
+      "bsonType": "timestamp",
+      "description": "操作时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  },
+  "indexes": [
+    {
+      "name": "idx_user",
+      "keyPath": ["userId", "createTime"],
+      "unique": false
+    },
+    {
+      "name": "idx_method",
+      "keyPath": ["method", "createTime"],
+      "unique": false
+    }
+  ]
+}

@@ -45,7 +45,7 @@ export const mutations = {
 			})
 			try {
 				let res = await usersTable.where("'_id' == $cloudEnv_uid")
-					.field('mobile,nickname,username,email,avatar_file')
+					.field('mobile,nickname,username,email,avatar_file,alumniStatus')
 					.get()
 
 				const realNameRes = await uniIdCo.getRealNameInfo()

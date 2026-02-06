@@ -167,6 +167,36 @@
             />
           </view>
 
+          <!-- 班主任（高中/初中校友会） -->
+          <view v-if="!isUniversityType" class="form-item">
+            <text class="form-label required">班主任</text>
+            <input
+              class="form-input"
+              v-model="edu.headTeacher"
+              placeholder="请输入班主任姓名"
+            />
+          </view>
+
+          <!-- 初中毕业学校（仅高中校友会） -->
+          <view v-if="isHighSchoolType" class="form-item">
+            <text class="form-label required">初中毕业学校</text>
+            <input
+              class="form-input"
+              v-model="edu.middleSchool"
+              placeholder="请输入初中毕业学校"
+            />
+          </view>
+
+          <!-- 任课老师（高中/初中校友会） -->
+          <view v-if="!isUniversityType" class="form-item">
+            <text class="form-label">任课老师</text>
+            <input
+              class="form-input"
+              v-model="edu.teachers"
+              placeholder="请输入任意任课老师（可选）"
+            />
+          </view>
+
           <!-- 学号 -->
           <view class="form-item">
             <text class="form-label">学号</text>
@@ -183,6 +213,69 @@
             <switch :checked="edu.isPrimary" @change="onPrimaryChange($event, index)" />
           </view>
         </view>
+      </view>
+
+      <!-- 现工作单位及职务 -->
+      <view class="form-item">
+        <text class="form-label required">现工作单位及职务</text>
+        <input
+          class="form-input"
+          v-model="formData.workInfo"
+          placeholder="请输入现工作单位及职务"
+        />
+      </view>
+
+      <!-- 对母校寄语 -->
+      <view class="form-item">
+        <text class="form-label">对母校寄语</text>
+        <textarea
+          class="form-textarea"
+          v-model="formData.message"
+          placeholder="请输入对母校的寄语（可选）"
+          maxlength="200"
+        />
+      </view>
+
+      <!-- 现居城市 -->
+      <view class="form-item">
+        <text class="form-label required">现居城市</text>
+        <input
+          class="form-input"
+          v-model="formData.city"
+          placeholder="请输入现居城市"
+        />
+      </view>
+
+      <!-- 校友卡图片 -->
+      <view class="photo-section">
+        <view class="section-header">
+          <text class="section-title required-title">校友卡图片（本人近期照片）</text>
+        </view>
+        <uni-file-picker
+          v-model="formData.cardPhoto"
+          file-mediatype="image"
+          mode="grid"
+          :limit="1"
+          @select="onCardPhotoSelect"
+          @delete="onCardPhotoDelete"
+        ></uni-file-picker>
+        <text class="upload-tips">用于制作校友卡，请上传清晰的正面照片</text>
+      </view>
+
+      <!-- 学历证书 -->
+      <view class="photo-section">
+        <view class="section-header">
+          <text class="section-title">学历证书</text>
+        </view>
+        <uni-file-picker
+          v-model="formData.diplomaPhoto"
+          file-mediatype="image"
+          mode="grid"
+          :limit="3"
+          @select="onDiplomaSelect"
+          @delete="onDiplomaDelete"
+        ></uni-file-picker>
+        <text class="upload-tips">可上传毕业证、学位证等（可选）</text>
       </view>
 
       <!-- 证明材料（如果需要） -->
@@ -246,6 +339,11 @@ export default {
       schoolConfig: {},
       formData: {
         realName: '',
+        workInfo: '',
+        message: '',
+        city: '',
+        cardPhoto: [],
+        diplomaPhoto: [],
         educations: [
           {
             degree: '',
@@ -254,6 +352,9 @@ export default {
             college: '',
             major: '',
             className: '',
+            headTeacher: '',
+            middleSchool: '',
+            teachers: '',
             studentId: '',
             isPrimary: true
           }
@@ -316,6 +417,22 @@ export default {
     },
     recommendProgress() {
       return Math.min(100, (this.recommendCount / this.requiredRecommendCount) * 100)
+    },
+    // 学校类型：university, highschool, middleschool
+    schoolType() {
+      return this.schoolConfig.type || 'university'
+    },
+    // 是否为大学类型
+    isUniversityType() {
+      return this.schoolType === 'university'
+    },
+    // 是否为高中类型
+    isHighSchoolType() {
+      return this.schoolType === 'highschool'
+    },
+    // 是否为初中类型
+    isMiddleSchoolType() {
+      return this.schoolType === 'middleschool'
     }
   },
   onLoad() {
@@ -453,6 +570,9 @@ export default {
         college: '',
         major: '',
         className: '',
+        headTeacher: '',
+        middleSchool: '',
+        teachers: '',
         studentId: '',
         isPrimary: false
       })
@@ -470,6 +590,18 @@ export default {
     onProofDelete(e) {
       console.log('删除证明材料', e)
     },
+    onCardPhotoSelect(e) {
+      console.log('选择校友卡照片', e)
+    },
+    onCardPhotoDelete(e) {
+      console.log('删除校友卡照片', e)
+    },
+    onDiplomaSelect(e) {
+      console.log('选择学历证书', e)
+    },
+    onDiplomaDelete(e) {
+      console.log('删除学历证书', e)
+    },
     validateForm() {
       if (!this.formData.realName || this.formData.realName.length < 2) {
         uni.showToast({ title: '请输入真实姓名', icon: 'none' })
@@ -485,6 +617,31 @@ export default {
           uni.showToast({ title: '请选择入学年份', icon: 'none' })
           return false
         }
+        // 高中/初中校友会需要填写班主任
+        if (!this.isUniversityType && !edu.headTeacher) {
+          uni.showToast({ title: '请输入班主任姓名', icon: 'none' })
+          return false
+        }
+        // 高中校友会需要填写初中毕业学校
+        if (this.isHighSchoolType && !edu.middleSchool) {
+          uni.showToast({ title: '请输入初中毕业学校', icon: 'none' })
+          return false
+        }
+      }
+
+      if (!this.formData.workInfo) {
+        uni.showToast({ title: '请输入现工作单位及职务', icon: 'none' })
+        return false
+      }
+
+      if (!this.formData.city) {
+        uni.showToast({ title: '请输入现居城市', icon: 'none' })
+        return false
+      }
+
+      if (!this.formData.cardPhoto || this.formData.cardPhoto.length === 0) {
+        uni.showToast({ title: '请上传校友卡照片', icon: 'none' })
+        return false
       }
 
       if (this.requireProof && this.formData.proofFiles.length === 0) {
@@ -499,6 +656,37 @@ export default {
 
       this.submitting = true
       try {
+        // 上传校友卡照片
+        let cardPhotoUrl = ''
+        if (this.formData.cardPhoto.length > 0) {
+          const file = this.formData.cardPhoto[0]
+          if (file.url && !file.url.startsWith('cloud://')) {
+            const uploadRes = await uniCloud.uploadFile({
+              filePath: file.url,
+              cloudPath: `alumni-card-photo/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`
+            })
+            cardPhotoUrl = uploadRes.fileID
+          } else if (file.url) {
+            cardPhotoUrl = file.url
+          }
+        }
+
+        // 上传学历证书
+        let diplomaUrls = []
+        if (this.formData.diplomaPhoto.length > 0) {
+          for (const file of this.formData.diplomaPhoto) {
+            if (file.url && !file.url.startsWith('cloud://')) {
+              const uploadRes = await uniCloud.uploadFile({
+                filePath: file.url,
+                cloudPath: `diploma-photo/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`
+              })
+              diplomaUrls.push(uploadRes.fileID)
+            } else if (file.url) {
+              diplomaUrls.push(file.url)
+            }
+          }
+        }
+
         // 上传证明材料
         let proofUrls = []
         if (this.formData.proofFiles.length > 0) {
@@ -517,8 +705,14 @@ export default {
 
         const res = await alumniCo.submitVerification({
           realName: this.formData.realName,
+          workInfo: this.formData.workInfo,
+          message: this.formData.message,
+          city: this.formData.city,
+          cardPhotoUrl,
+          diplomaUrls,
           educations: this.formData.educations,
-          proofUrls
+          proofUrls,
+          schoolType: this.schoolType
         })
 
         if (res.errCode === 0) {
@@ -704,6 +898,32 @@ export default {
 
 .education-section {
   margin-top: 30rpx;
+}
+
+.form-textarea {
+  width: 100%;
+  height: 160rpx;
+  padding: 20rpx;
+  background-color: #f9f9f9;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+.photo-section {
+  margin-top: 30rpx;
+}
+
+.required-title::before {
+  content: '*';
+  color: #E74C3C;
+  margin-right: 4rpx;
+}
+
+.upload-tips {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 12rpx;
+  display: block;
 }
 
 .education-header {

@@ -29,6 +29,130 @@ function checkLogin(uid) {
   }
 }
 
+/**
+ * 处理名片交换请求（独立函数）
+ * @param {string} currentUid - 当前用户ID
+ * @param {Object} params
+ * @param {string} params.requestId - 请求ID
+ * @param {string} params.action - 操作: accept/reject
+ * @param {string} [params.rejectReason] - 拒绝原因
+ * @returns {Promise<Object>} 处理结果
+ */
+async function doHandleCardRequest(currentUid, { requestId, action, rejectReason }) {
+  checkLogin(currentUid)
+
+  if (!requestId) {
+    throw {
+      errCode: 'INVALID_PARAM',
+      errMsg: '请指定请求ID'
+    }
+  }
+
+  if (!['accept', 'reject'].includes(action)) {
+    throw {
+      errCode: 'INVALID_PARAM',
+      errMsg: '操作类型无效'
+    }
+  }
+
+  const cardCollection = db.collection('alumni-card-requests')
+  const requestRes = await cardCollection.doc(requestId).get()
+
+  if (!requestRes.data || requestRes.data.length === 0) {
+    throw {
+      errCode: 'REQUEST_NOT_FOUND',
+      errMsg: '请求不存在'
+    }
+  }
+
+  const request = requestRes.data[0]
+
+  // 检查权限（只有接收人可以处理）
+  if (request.toUserId !== currentUid) {
+    throw {
+      errCode: 'NO_PERMISSION',
+      errMsg: '无权处理此请求'
+    }
+  }
+
+  // 检查状态
+  if (request.status !== 0) {
+    throw {
+      errCode: 'REQUEST_PROCESSED',
+      errMsg: '该请求已处理'
+    }
+  }
+
+  // 检查是否过期
+  if (request.expireTime && request.expireTime < Date.now()) {
+    await cardCollection.doc(requestId).update({
+      status: 3,
+      handleTime: Date.now()
+    })
+    throw {
+      errCode: 'REQUEST_EXPIRED',
+      errMsg: '请求已过期'
+    }
+  }
+
+  const now = Date.now()
+
+  if (action === 'accept') {
+    const [userIdA, userIdB] = [request.fromUserId, request.toUserId].sort()
+
+    const transaction = await db.startTransaction()
+
+    try {
+      await transaction.collection('alumni-card-requests').doc(requestId).update({
+        status: 1,
+        handleTime: now
+      })
+
+      await transaction.collection('alumni-friends').add({
+        userIdA,
+        userIdB,
+        sourceRequestId: requestId,
+        status: 1,
+        createTime: now
+      })
+
+      await transaction.collection('uni-id-users').doc(request.fromUserId).update({
+        friendCount: dbCmd.inc(1)
+      })
+      await transaction.collection('uni-id-users').doc(request.toUserId).update({
+        friendCount: dbCmd.inc(1)
+      })
+
+      await transaction.commit()
+
+      return {
+        errCode: 0,
+        errMsg: '已添加为好友',
+        data: {
+          friendUserId: request.fromUserId
+        }
+      }
+    } catch (e) {
+      await transaction.rollback()
+      throw {
+        errCode: 'SYSTEM_ERROR',
+        errMsg: '操作失败，请重试'
+      }
+    }
+  } else {
+    await cardCollection.doc(requestId).update({
+      status: 2,
+      rejectReason: rejectReason || '',
+      handleTime: now
+    })
+
+    return {
+      errCode: 0,
+      errMsg: '已拒绝请求'
+    }
+  }
+}
+
 module.exports = {
   _before: async function() {
     this.clientInfo = this.getClientInfo()
@@ -147,7 +271,7 @@ module.exports = {
 
     if (receivedPending.data && receivedPending.data.length > 0) {
       // 直接同意对方的请求
-      return this.handleCardRequest({
+      return doHandleCardRequest(this.uid, {
         requestId: receivedPending.data[0]._id,
         action: 'accept'
       })
@@ -186,128 +310,7 @@ module.exports = {
    * @returns {Promise<Object>} 处理结果
    */
   async handleCardRequest({ requestId, action, rejectReason }) {
-    checkLogin(this.uid)
-
-    if (!requestId) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '请指定请求ID'
-      }
-    }
-
-    if (!['accept', 'reject'].includes(action)) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '操作类型无效'
-      }
-    }
-
-    const cardCollection = db.collection('alumni-card-requests')
-    const requestRes = await cardCollection.doc(requestId).get()
-
-    if (!requestRes.data || requestRes.data.length === 0) {
-      throw {
-        errCode: 'REQUEST_NOT_FOUND',
-        errMsg: '请求不存在'
-      }
-    }
-
-    const request = requestRes.data[0]
-
-    // 检查权限（只有接收人可以处理）
-    if (request.toUserId !== this.uid) {
-      throw {
-        errCode: 'NO_PERMISSION',
-        errMsg: '无权处理此请求'
-      }
-    }
-
-    // 检查状态
-    if (request.status !== 0) {
-      throw {
-        errCode: 'REQUEST_PROCESSED',
-        errMsg: '该请求已处理'
-      }
-    }
-
-    // 检查是否过期
-    if (request.expireTime && request.expireTime < Date.now()) {
-      await cardCollection.doc(requestId).update({
-        status: 3, // 已过期
-        handleTime: Date.now()
-      })
-      throw {
-        errCode: 'REQUEST_EXPIRED',
-        errMsg: '请求已过期'
-      }
-    }
-
-    const now = Date.now()
-
-    if (action === 'accept') {
-      // 同意请求 - 创建好友关系
-      const [userIdA, userIdB] = [request.fromUserId, request.toUserId].sort()
-
-      const friendCollection = db.collection('alumni-friends')
-
-      // 使用事务确保数据一致性
-      const transaction = await db.startTransaction()
-
-      try {
-        // 更新请求状态
-        await transaction.collection('alumni-card-requests').doc(requestId).update({
-          status: 1, // 已同意
-          handleTime: now
-        })
-
-        // 创建好友关系
-        await transaction.collection('alumni-friends').add({
-          userIdA,
-          userIdB,
-          sourceRequestId: requestId,
-          status: 1, // 正常
-          createTime: now
-        })
-
-        // 更新双方好友数
-        await transaction.collection('uni-id-users').doc(request.fromUserId).update({
-          friendCount: dbCmd.inc(1)
-        })
-        await transaction.collection('uni-id-users').doc(request.toUserId).update({
-          friendCount: dbCmd.inc(1)
-        })
-
-        await transaction.commit()
-
-        // TODO: 通知对方请求已被接受
-
-        return {
-          errCode: 0,
-          errMsg: '已添加为好友',
-          data: {
-            friendUserId: request.fromUserId
-          }
-        }
-      } catch (e) {
-        await transaction.rollback()
-        throw {
-          errCode: 'SYSTEM_ERROR',
-          errMsg: '操作失败，请重试'
-        }
-      }
-    } else {
-      // 拒绝请求
-      await cardCollection.doc(requestId).update({
-        status: 2, // 已拒绝
-        rejectReason: rejectReason || '',
-        handleTime: now
-      })
-
-      return {
-        errCode: 0,
-        errMsg: '已拒绝请求'
-      }
-    }
+    return doHandleCardRequest(this.uid, { requestId, action, rejectReason })
   },
 
   /**

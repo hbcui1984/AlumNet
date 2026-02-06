@@ -71,6 +71,106 @@ function checkLogin(uid) {
   }
 }
 
+/**
+ * 验证教育经历数据
+ * @param {Education[]} educations
+ * @param {string} schoolType - 学校类型：university, highschool, middleschool
+ */
+function validateEducations(educations, schoolType = 'university') {
+  if (!Array.isArray(educations) || educations.length === 0) {
+    throw {
+      errCode: 'INVALID_PARAM',
+      errMsg: '教育经历不能为空'
+    }
+  }
+
+  if (educations.length > 5) {
+    throw {
+      errCode: 'INVALID_PARAM',
+      errMsg: '教育经历最多5条'
+    }
+  }
+
+  const validDegrees = ['bachelor', 'master', 'doctor', 'highschool', 'middleschool']
+  const currentYear = new Date().getFullYear()
+
+  for (const edu of educations) {
+    if (!edu.degree || !validDegrees.includes(edu.degree)) {
+      throw {
+        errCode: 'INVALID_PARAM',
+        errMsg: '学历类型无效'
+      }
+    }
+
+    if (!edu.enrollmentYear || edu.enrollmentYear < 1900 || edu.enrollmentYear > currentYear) {
+      throw {
+        errCode: 'INVALID_PARAM',
+        errMsg: '入学年份无效'
+      }
+    }
+
+    if (edu.graduationYear && edu.graduationYear < edu.enrollmentYear) {
+      throw {
+        errCode: 'INVALID_PARAM',
+        errMsg: '毕业年份不能早于入学年份'
+      }
+    }
+
+    // 高中/初中校友会需要填写班主任
+    if (schoolType !== 'university' && !edu.headTeacher) {
+      throw {
+        errCode: 'INVALID_PARAM',
+        errMsg: '请填写班主任姓名'
+      }
+    }
+
+    // 高中校友会需要填写初中毕业学校
+    if (schoolType === 'highschool' && !edu.middleSchool) {
+      throw {
+        errCode: 'INVALID_PARAM',
+        errMsg: '请填写初中毕业学校'
+      }
+    }
+  }
+
+  // 确保只有一个主要学历
+  const primaryCount = educations.filter(e => e.isPrimary).length
+  if (primaryCount > 1) {
+    throw {
+      errCode: 'INVALID_PARAM',
+      errMsg: '只能有一个主要学历'
+    }
+  }
+}
+
+/**
+ * 生成唯一的校友卡号
+ * @param {number} enrollmentYear - 入学年份
+ * @returns {Promise<string>} 校友卡号
+ */
+async function generateUniqueCardNo(enrollmentYear) {
+  const userCollection = db.collection('uni-id-users')
+
+  // 查询该年份最大的卡号
+  const res = await userCollection
+    .where({
+      alumniCardNo: dbCmd.exists(true),
+      alumniCardNo: new RegExp(`^${enrollmentYear}`)
+    })
+    .orderBy('alumniCardNo', 'desc')
+    .limit(1)
+    .get()
+
+  let sequence = 1
+  if (res.data && res.data.length > 0) {
+    const lastCardNo = res.data[0].alumniCardNo
+    const lastSequence = parseInt(lastCardNo.substring(4))
+    sequence = lastSequence + 1
+  }
+
+  return generateAlumniCardNo(enrollmentYear, sequence)
+}
+
 module.exports = {
   _before: async function() {
     // 获取客户端信息
@@ -176,7 +276,7 @@ module.exports = {
 
     // 验证教育经历
     if (updateData.educations) {
-      this._validateEducations(updateData.educations)
+      validateEducations(updateData.educations)
     }
 
     // 验证兴趣标签数量
@@ -197,62 +297,6 @@ module.exports = {
   },
 
   /**
-   * 验证教育经历数据
-   * @private
-   * @param {Education[]} educations
-   */
-  _validateEducations(educations) {
-    if (!Array.isArray(educations) || educations.length === 0) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '教育经历不能为空'
-      }
-    }
-
-    if (educations.length > 5) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '教育经历最多5条'
-      }
-    }
-
-    const validDegrees = ['bachelor', 'master', 'doctor', 'highschool', 'middleschool']
-    const currentYear = new Date().getFullYear()
-
-    for (const edu of educations) {
-      if (!edu.degree || !validDegrees.includes(edu.degree)) {
-        throw {
-          errCode: 'INVALID_PARAM',
-          errMsg: '学历类型无效'
-        }
-      }
-
-      if (!edu.enrollmentYear || edu.enrollmentYear < 1900 || edu.enrollmentYear > currentYear) {
-        throw {
-          errCode: 'INVALID_PARAM',
-          errMsg: '入学年份无效'
-        }
-      }
-
-      if (edu.graduationYear && edu.graduationYear < edu.enrollmentYear) {
-        throw {
-          errCode: 'INVALID_PARAM',
-          errMsg: '毕业年份不能早于入学年份'
-        }
-      }
-    }
-
-    // 确保只有一个主要学历
-    const primaryCount = educations.filter(e => e.isPrimary).length
-    if (primaryCount > 1) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '只能有一个主要学历'
-      }
-    }
-  },
-
-  /**
    * 提交校友认证
    * @param {VerificationData} data - 认证信息
    * @returns {Promise<Object>} 提交结果
@@ -264,11 +308,12 @@ module.exports = {
       realName,
       educations,
       proofUrls,
-      idCard,
-      classTeacher,
-      middleSchool,
-      teachers,
-      messageToSchool
+      workInfo,
+      message,
+      city,
+      cardPhotoUrl,
+      diplomaUrls,
+      schoolType
     } = data
 
     // 参数验证
@@ -279,7 +324,28 @@ module.exports = {
       }
     }
 
-    this._validateEducations(educations)
+    if (!workInfo) {
+      throw {
+        errCode: 'INVALID_PARAM',
+        errMsg: '请填写现工作单位及职务'
+      }
+    }
+
+    if (!city) {
+      throw {
+        errCode: 'INVALID_PARAM',
+        errMsg: '请填写现居城市'
+      }
+    }
+
+    if (!cardPhotoUrl) {
+      throw {
+        errCode: 'INVALID_PARAM',
+        errMsg: '请上传校友卡照片'
+      }
+    }
+
+    validateEducations(educations, schoolType)
 
     // 检查当前认证状态
     const userCollection = db.collection('uni-id-users')
@@ -294,101 +360,32 @@ module.exports = {
       }
     }
 
-    // 获取学校配置，判断认证方式
-    const configRes = await db.collection('alumni-school-config')
-      .doc('school_config')
-      .get()
-
-    const schoolConfig = configRes.data?.[0] || {}
-    const features = schoolConfig.features || {}
-
     // 更新用户信息
     const updateData = {
       realName,
       educations,
+      workInfo,
+      city,
+      cardPhotoUrl,
       alumniStatus: 0 // 待认证
     }
 
     // 添加可选字段
-    if (idCard) updateData.idCard = idCard
-    if (classTeacher) updateData.classTeacher = classTeacher
-    if (middleSchool) updateData.middleSchool = middleSchool
-    if (teachers && teachers.length > 0) updateData.teachers = teachers
-    if (messageToSchool) updateData.messageToSchool = messageToSchool
+    if (message) updateData.messageToSchool = message
+    if (diplomaUrls && diplomaUrls.length > 0) updateData.diplomaUrls = diplomaUrls
+    if (proofUrls && proofUrls.length > 0) updateData.verifyProof = proofUrls
 
-    if (proofUrls && proofUrls.length > 0) {
-      updateData.verifyProof = proofUrls
-    }
-
-    // 如果启用推荐认证，检查推荐数量
-    if (features.enableRecommendVerify) {
-      const requiredCount = features.recommendCount || 3
-      const recommendRes = await db.collection('alumni-recommendations')
-        .where({
-          toUserId: this.uid,
-          status: 0 // 有效推荐
-        })
-        .count()
-
-      if (recommendRes.total >= requiredCount) {
-        // 推荐数达标，自动通过认证
-        updateData.alumniStatus = 1
-        updateData.alumniVerifyTime = Date.now()
-        updateData.recommendCount = recommendRes.total
-
-        // 生成校友卡号
-        const primaryEdu = educations.find(e => e.isPrimary) || educations[0]
-        updateData.alumniCardNo = await this._generateUniqueCardNo(primaryEdu.enrollmentYear)
-      }
-    } else if (!features.requireProof) {
-      // 不需要证明材料，自动通过
-      updateData.alumniStatus = 1
-      updateData.alumniVerifyTime = Date.now()
-
-      // 生成校友卡号
-      const primaryEdu = educations.find(e => e.isPrimary) || educations[0]
-      updateData.alumniCardNo = await this._generateUniqueCardNo(primaryEdu.enrollmentYear)
-    }
+    updateData.submitTime = Date.now()
 
     await userCollection.doc(this.uid).update(updateData)
 
     return {
       errCode: 0,
-      errMsg: updateData.alumniStatus === 1 ? '认证通过' : '认证信息已提交，请等待审核',
+      errMsg: '认证信息已提交，请等待审核',
       data: {
-        status: updateData.alumniStatus,
-        alumniCardNo: updateData.alumniCardNo
+        status: updateData.alumniStatus
       }
     }
-  },
-
-  /**
-   * 生成唯一的校友卡号
-   * @private
-   * @param {number} enrollmentYear - 入学年份
-   * @returns {Promise<string>} 校友卡号
-   */
-  async _generateUniqueCardNo(enrollmentYear) {
-    const userCollection = db.collection('uni-id-users')
-
-    // 查询该年份最大的卡号
-    const res = await userCollection
-      .where({
-        alumniCardNo: dbCmd.exists(true),
-        alumniCardNo: new RegExp(`^${enrollmentYear}`)
-      })
-      .orderBy('alumniCardNo', 'desc')
-      .limit(1)
-      .get()
-
-    let sequence = 1
-    if (res.data && res.data.length > 0) {
-      const lastCardNo = res.data[0].alumniCardNo
-      const lastSequence = parseInt(lastCardNo.substring(4))
-      sequence = lastSequence + 1
-    }
-
-    return generateAlumniCardNo(enrollmentYear, sequence)
   },
 
   /**
@@ -479,7 +476,8 @@ module.exports = {
     // 检查被推荐人是否存在且未认证
     const targetInfo = await userCollection.doc(toUserId).field({
       alumniStatus: 1,
-      realName: 1
+      realName: 1,
+      educations: 1
     }).get()
 
     if (!targetInfo.data || targetInfo.data.length === 0) {
@@ -543,9 +541,32 @@ module.exports = {
 
       if (newRecommendRes.total >= requiredCount) {
         // 达到条件，自动认证
-        await userCollection.doc(toUserId).update({
+        const now = Date.now()
+        const primaryEdu = targetInfo.data[0]?.educations?.find(e => e.isPrimary) || targetInfo.data[0]?.educations?.[0]
+
+        const updateFields = {
           alumniStatus: 1,
-          alumniVerifyTime: Date.now()
+          alumniVerifyTime: now,
+          alumniVerifyMethod: 'recommend',
+          recommendCount: newRecommendRes.total
+        }
+
+        // 生成校友卡号
+        if (primaryEdu?.enrollmentYear) {
+          updateFields.alumniCardNo = await generateUniqueCardNo(primaryEdu.enrollmentYear)
+        }
+
+        await userCollection.doc(toUserId).update(updateFields)
+
+        // 记录审计日志
+        await db.collection('alumni-verify-logs').add({
+          userId: toUserId,
+          method: 'recommend',
+          recommendCount: newRecommendRes.total,
+          requiredCount,
+          lastRecommenderId: this.uid,
+          result: 'approved',
+          createTime: now
         })
       }
     }
@@ -617,7 +638,7 @@ module.exports = {
             enableMap: true,
             enableActivity: true,
             enableOrganization: true,
-            enableRecommendVerify: true,
+            enableRecommendVerify: false,
             recommendCount: 3,
             requireProof: false
           }
@@ -666,8 +687,11 @@ module.exports = {
     }
 
     // 获取学校配置
-    const configRes = await this.getSchoolConfig()
-    const schoolConfig = configRes.data
+    const configRes2 = await db.collection('alumni-school-config')
+      .doc('school_config')
+      .get()
+
+    const schoolConfig = configRes2.data?.[0] || { name: '校友会' }
 
     // 获取主要学历
     const primaryEdu = user.educations?.find(e => e.isPrimary) || user.educations?.[0]
