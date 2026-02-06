@@ -29,3 +29,6 @@ npm-debug.log*
 
 # uniCloud local
 .hbuilderx/
+
+# App config (contains appid)
+manifest.json
