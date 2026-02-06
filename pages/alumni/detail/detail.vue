@@ -483,9 +483,15 @@ export default {
   font-size: 28rpx;
   border-radius: 40rpx;
   margin: 0 10rpx;
+  border: none;
+
+  &::after {
+    border: none;
+  }
 
   &.primary {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    background-color: var(--primary-color);
+    background-image: linear-gradient(135deg, var(--primary-color), var(--primary-light));
     color: #fff;
   }
 
@@ -679,6 +685,11 @@ export default {
   font-size: 28rpx;
   border-radius: 40rpx;
   margin: 0 10rpx;
+  border: none;
+
+  &::after {
+    border: none;
+  }
 }
 
 .cancel-btn {
@@ -687,7 +698,8 @@ export default {
 }
 
 .confirm-btn {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  background-color: var(--primary-color);
+  background-image: linear-gradient(135deg, var(--primary-color), var(--primary-light));
   color: #fff;
 }
 

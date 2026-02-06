@@ -196,7 +196,7 @@ export default {
   },
   onShow() {
     // 刷新好友请求数量
-    if (this.hasLogin) {
+    if (this.hasLogin && uniCloud.getCurrentUserInfo().tokenExpired > Date.now()) {
       this.loadFriendRequestCount()
     }
   },
@@ -222,8 +222,8 @@ export default {
         console.error('加载统计数据失败', e)
       }
 
-      // 如果已登录，加载更多数据
-      if (this.hasLogin) {
+      // 如果已登录且token未过期，加载更多数据
+      if (this.hasLogin && uniCloud.getCurrentUserInfo().tokenExpired > Date.now()) {
         this.loadRecommendedAlumni()
         this.loadFriendRequestCount()
       }

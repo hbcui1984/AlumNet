@@ -640,6 +640,11 @@ export default {
   font-size: 26rpx;
   border-radius: 32rpx;
   margin-left: 20rpx;
+  border: none;
+
+  &::after {
+    border: none;
+  }
 }
 
 .reject-btn {
@@ -648,7 +653,8 @@ export default {
 }
 
 .accept-btn {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  background-color: var(--primary-color);
+  background-image: linear-gradient(135deg, var(--primary-color), var(--primary-light));
   color: #fff;
 }
 

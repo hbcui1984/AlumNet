@@ -764,11 +764,16 @@ export default {
   margin-top: 40rpx;
   height: 88rpx;
   line-height: 88rpx;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  background-color: var(--primary-color);
+  background-image: linear-gradient(135deg, var(--primary-color), var(--primary-light));
   color: #fff;
   font-size: 32rpx;
   border-radius: 44rpx;
   border: none;
+
+  &::after {
+    border: none;
+  }
 }
 
 .verified-section {
