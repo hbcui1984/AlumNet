@@ -31,4 +31,3 @@ npm-debug.log*
 .hbuilderx/
 
 # App config (contains appid)
-manifest.json
