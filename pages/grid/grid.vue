@@ -77,7 +77,7 @@
 		methods: {
 			change(e) {
 				uni.showToast({
-					title:this.$t('grid.clickTip') + " " + `${e.detail.index + 1}` + " " + this.$t('grid.clickTipGrid'),
+					title:this.$t('grid.clickTip') + " " + `${(e.detail?.index ?? e) + 1}` + " " + this.$t('grid.clickTipGrid'),
 					icon: 'none'
 				})
 			},
@@ -87,7 +87,7 @@
 			onqueryload(data) {
 			},
 			changeSwiper(e) {
-				this.current = e.detail.current
+				this.current = e.detail?.current ?? e
 			},
 			/**
 			 * 点击banner的处理

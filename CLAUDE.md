@@ -111,3 +111,34 @@ Privacy scopes for contact visibility:
 
 - Translations in `lang/zh-Hans.js` and `lang/en.js`
 - Use `$t('key')` in templates
+
+## 跨平台兼容注意事项
+
+### 事件对象 e.detail 兼容性
+
+uni-app 编译到不同平台时，组件事件回调的参数结构不一致：
+
+| 平台 | picker @change | switch @change |
+|------|---------------|----------------|
+| H5 | `e.detail.value` | `e.detail.value` |
+| 微信小程序 | 可能直接传 index 值 | 可能直接传 boolean |
+
+**规则：所有事件处理函数中，必须使用可选链兼容写法：**
+
+```javascript
+// ❌ 错误：直接访问 e.detail.value，小程序可能报 Cannot read property 'value' of undefined
+onPickerChange(e) {
+  const index = e.detail.value
+}
+
+// ✅ 正确：使用可选链 + 空值合并
+onPickerChange(e) {
+  const index = e.detail?.value ?? e
+}
+```
+
+适用于所有通过 `@change`、`@input` 等事件传递的回调，包括：
+- `picker` 的 `@change` → 取选中索引
+- `switch` 的 `@change` → 取 boolean 值
+- `swiper` 的 `@change` → 取 `e.detail?.current ?? e`
+- `uni-grid` 的 `@change` → 取 `e.detail?.index ?? e`

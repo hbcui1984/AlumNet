@@ -249,7 +249,7 @@ export default {
       })
     },
     onIndustryChange(e) {
-      const index = e.detail.value
+      const index = e.detail?.value ?? e
       this.formData.industry = this.industryOptions[index]?.value || ''
     },
     getIndustryLabel() {
@@ -269,10 +269,10 @@ export default {
       }
     },
     onProfileVisibleChange(e) {
-      this.formData.profileVisible = e.detail.value
+      this.formData.profileVisible = e.detail?.value ?? e
     },
     onContactVisibleChange(e) {
-      this.formData.contactVisible = e.detail.value
+      this.formData.contactVisible = e.detail?.value ?? e
     },
     async saveProfile() {
       if (!this.formData.realName) {

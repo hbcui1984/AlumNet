@@ -533,29 +533,34 @@ export default {
       return ['bachelor', 'master', 'doctor'].includes(degree)
     },
     onDegreeChange(e, index) {
-      const degreeIndex = e.detail.value
+      const degreeIndex = e.detail?.value ?? e
       this.formData.educations[index].degree = this.degreeOptions[degreeIndex].value
     },
     onEnrollmentYearChange(e, index) {
-      this.formData.educations[index].enrollmentYear = this.yearOptions[e.detail.value]
+      const val = e.detail?.value ?? e
+      this.formData.educations[index].enrollmentYear = this.yearOptions[val]
     },
     onGraduationYearChange(e, index) {
-      this.formData.educations[index].graduationYear = this.yearOptions[e.detail.value]
+      const val = e.detail?.value ?? e
+      this.formData.educations[index].graduationYear = this.yearOptions[val]
     },
     onCollegeChange(e, index) {
-      const college = this.collegeOptions[e.detail.value]
+      const val = e.detail?.value ?? e
+      const college = this.collegeOptions[val]
       this.formData.educations[index].college = college.name
-      this.formData.educations[index].major = '' // 重置专业
+      this.formData.educations[index].major = ''
     },
     onMajorChange(e, index) {
+      const val = e.detail?.value ?? e
       const edu = this.formData.educations[index]
       const majors = this.getMajorOptions(edu.college)
-      edu.major = majors[e.detail.value]
+      edu.major = majors[val]
     },
     onPrimaryChange(e, index) {
       // 只能有一个主要学历
+      const checked = e.detail?.value ?? e
       this.formData.educations.forEach((edu, i) => {
-        edu.isPrimary = i === index && e.detail.value
+        edu.isPrimary = i === index && checked
       })
     },
     addEducation() {
