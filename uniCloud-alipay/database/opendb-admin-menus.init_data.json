@@ -11,6 +11,61 @@
     "create_date": 1602662469396
   },
   {
+    "menu_id": "alumni_management",
+    "name": "校友管理",
+    "icon": "uni-icons-contact",
+    "url": "",
+    "sort": 200,
+    "parent_id": "",
+    "permission": [],
+    "enable": true,
+    "create_date": 1702662469396
+  },
+  {
+    "menu_id": "alumni_dashboard",
+    "name": "数据概览",
+    "icon": "uni-icons-chart",
+    "url": "/pages/alumni/dashboard/dashboard",
+    "sort": 210,
+    "parent_id": "alumni_management",
+    "permission": [],
+    "enable": true,
+    "create_date": 1702662469396
+  },
+  {
+    "menu_id": "alumni_verification",
+    "name": "认证审核",
+    "icon": "uni-icons-checkbox",
+    "url": "/pages/alumni/verification/list",
+    "sort": 220,
+    "parent_id": "alumni_management",
+    "permission": [],
+    "enable": true,
+    "create_date": 1702662469396
+  },
+  {
+    "menu_id": "alumni_user",
+    "name": "用户管理",
+    "icon": "uni-icons-person",
+    "url": "/pages/alumni/user/list",
+    "sort": 230,
+    "parent_id": "alumni_management",
+    "permission": [],
+    "enable": true,
+    "create_date": 1702662469396
+  },
+  {
+    "menu_id": "alumni_school_config",
+    "name": "学校配置",
+    "icon": "uni-icons-gear",
+    "url": "/pages/alumni/school-config/school-config",
+    "sort": 240,
+    "parent_id": "alumni_management",
+    "permission": [],
+    "enable": true,
+    "create_date": 1702662469396
+  },
+  {
     "menu_id": "system_management",
     "name": "系统管理",
     "icon": "admin-icons-fl-xitong",
