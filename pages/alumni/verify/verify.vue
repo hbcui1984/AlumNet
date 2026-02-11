@@ -987,10 +987,11 @@ export default {
 
 .submit-btn {
   margin-top: 40rpx;
+  margin-bottom: 40rpx;
   height: 88rpx;
   line-height: 88rpx;
-  background-color: var(--primary-color);
-  background-image: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  background-color: var(--primary-color, #2B5CE6);
+  background-image: linear-gradient(135deg, var(--primary-color, #2B5CE6), var(--primary-light, #5B7FED));
   color: #fff;
   font-size: 32rpx;
   border-radius: 44rpx;

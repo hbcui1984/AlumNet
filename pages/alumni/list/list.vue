@@ -439,7 +439,7 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--bg-page);
 }
 
 .search-bar {
@@ -569,6 +569,7 @@ export default {
   margin-bottom: 16rpx;
   background-color: #fff;
   border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
 .avatar {

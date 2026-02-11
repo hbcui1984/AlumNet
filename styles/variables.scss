@@ -40,6 +40,7 @@
 
   // ==================== 渐变 ====================
   --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  --gradient-primary-deep: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 50%, var(--primary-light) 100%);
 
   // ==================== 特殊场景 ====================
   --verified-color: #2B5CE6;          // 认证标识色
@@ -69,6 +70,8 @@
 
   // ==================== 阴影 ====================
   --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+  --shadow-colored: 0 4rpx 16rpx rgba(43, 92, 230, 0.12);
 }

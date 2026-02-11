@@ -51,6 +51,7 @@
 	}
 </script>
 
-<style>
+<style lang="scss">
+	@import '@/styles/variables.scss';
 	/*每个页面公共css */
 </style>

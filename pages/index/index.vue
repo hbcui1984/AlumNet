@@ -2,6 +2,8 @@
   <view class="page-container">
     <!-- 头部区域 -->
     <view class="header">
+      <view class="header-decor header-decor-1"></view>
+      <view class="header-decor header-decor-2"></view>
       <view class="school-info">
         <image
           class="school-logo"
@@ -38,26 +40,26 @@
     <!-- 快捷入口 -->
     <view class="quick-entry">
       <view class="entry-item" @click="goToAlumniList">
-        <view class="entry-icon" style="background-color: rgba(43, 92, 230, 0.1);">
+        <view class="entry-icon" style="background: linear-gradient(135deg, rgba(43, 92, 230, 0.06), rgba(43, 92, 230, 0.14));">
           <uni-icons type="contact" size="28" color="var(--primary-color)"></uni-icons>
         </view>
         <text class="entry-text">找校友</text>
       </view>
       <view class="entry-item" @click="goToFriends">
-        <view class="entry-icon" style="background-color: rgba(39, 174, 96, 0.1);">
+        <view class="entry-icon" style="background: linear-gradient(135deg, rgba(39, 174, 96, 0.06), rgba(39, 174, 96, 0.14));">
           <uni-icons type="person" size="28" color="#27AE60"></uni-icons>
         </view>
         <text class="entry-text">我的好友</text>
         <view v-if="friendRequestCount > 0" class="badge">{{ friendRequestCount }}</view>
       </view>
       <view class="entry-item" @click="goToActivities">
-        <view class="entry-icon" style="background-color: rgba(243, 156, 18, 0.1);">
+        <view class="entry-icon" style="background: linear-gradient(135deg, rgba(243, 156, 18, 0.06), rgba(243, 156, 18, 0.14));">
           <uni-icons type="calendar" size="28" color="#F39C12"></uni-icons>
         </view>
         <text class="entry-text">校友活动</text>
       </view>
       <view class="entry-item" @click="goToOrganizations">
-        <view class="entry-icon" style="background-color: rgba(155, 89, 182, 0.1);">
+        <view class="entry-icon" style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.06), rgba(155, 89, 182, 0.14));">
           <uni-icons type="staff" size="28" color="#9B59B6"></uni-icons>
         </view>
         <text class="entry-text">校友组织</text>
@@ -309,7 +311,7 @@ export default {
 <style lang="scss" scoped>
 .page-container {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--bg-page);
 }
 
 .main-content {
@@ -323,21 +325,47 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 30rpx;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 50%, var(--primary-light) 100%);
   padding-top: calc(30rpx + env(safe-area-inset-top));
+  min-height: 160rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.header-decor {
+  position: absolute;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.header-decor-1 {
+  width: 300rpx;
+  height: 300rpx;
+  top: -100rpx;
+  right: -60rpx;
+}
+
+.header-decor-2 {
+  width: 200rpx;
+  height: 200rpx;
+  bottom: -80rpx;
+  left: -40rpx;
 }
 
 .school-info {
   display: flex;
   flex-direction: row;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .school-logo {
-  width: 80rpx;
-  height: 80rpx;
+  width: 88rpx;
+  height: 88rpx;
   border-radius: 16rpx;
   background-color: #fff;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.15);
 }
 
 .school-text {
@@ -345,21 +373,26 @@ export default {
 }
 
 .school-name {
-  font-size: 36rpx;
+  font-size: 38rpx;
   font-weight: bold;
   color: #fff;
   display: block;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
 .school-slogan {
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.9);
   display: block;
   margin-top: 4rpx;
+  letter-spacing: 2rpx;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.08);
 }
 
 .user-action {
   padding: 8rpx;
+  position: relative;
+  z-index: 1;
 }
 
 .user-avatar {
@@ -367,6 +400,7 @@ export default {
   height: 72rpx;
   border-radius: 50%;
   border: 4rpx solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.12);
 }
 
 .verify-banner {
@@ -376,9 +410,10 @@ export default {
   align-items: center;
   margin: 20rpx;
   padding: 24rpx;
-  background-color: #FFF9E6;
+  background: linear-gradient(135deg, #FFF9E6, #FFF3CC);
   border-radius: 12rpx;
-  border: 1rpx solid #F39C12;
+  border: 1rpx solid rgba(243, 156, 18, 0.3);
+  box-shadow: 0 2rpx 8rpx rgba(243, 156, 18, 0.08);
 }
 
 .banner-content {
@@ -408,7 +443,8 @@ export default {
   padding: 30rpx 20rpx;
   margin: 20rpx;
   background-color: #fff;
-  border-radius: 16rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
 .entry-item {
@@ -458,8 +494,10 @@ export default {
   justify-content: space-around;
   align-items: center;
   padding: 30rpx;
-  background-color: #fff;
+  background: linear-gradient(135deg, #f0f4ff, #e8eeff);
   border-radius: 16rpx;
+  border-left: 6rpx solid var(--primary-color);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
 .stat-item {
@@ -483,14 +521,15 @@ export default {
 .stat-divider {
   width: 1rpx;
   height: 60rpx;
-  background-color: #eee;
+  background-color: rgba(43, 92, 230, 0.15);
 }
 
 .section {
   margin: 20rpx;
   padding: 24rpx;
   background-color: #fff;
-  border-radius: 16rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
 .section-header {
@@ -505,6 +544,8 @@ export default {
   font-size: 32rpx;
   font-weight: bold;
   color: #333;
+  border-left: 6rpx solid var(--primary-color);
+  padding-left: 16rpx;
 }
 
 .section-more {
@@ -525,6 +566,9 @@ export default {
   align-items: center;
   width: 160rpx;
   margin-right: 20rpx;
+  padding: 16rpx 8rpx;
+  background-color: #fafbff;
+  border-radius: 12rpx;
 }
 
 .alumni-avatar {
@@ -532,6 +576,7 @@ export default {
   height: 100rpx;
   border-radius: 50%;
   margin-bottom: 12rpx;
+  border: 3rpx solid rgba(43, 92, 230, 0.15);
 }
 
 .alumni-name {
@@ -578,7 +623,7 @@ export default {
 .activity-cover {
   width: 180rpx;
   height: 120rpx;
-  border-radius: 8rpx;
+  border-radius: 12rpx;
   margin-right: 20rpx;
 }
 

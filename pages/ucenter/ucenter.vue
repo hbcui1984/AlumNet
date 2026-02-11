@@ -15,7 +15,7 @@
 		</view>
 		<uni-grid class="grid" :column="4" :showBorder="false" :square="true">
 			<uni-grid-item class="item" v-for="(item,index) in gridList" @click.native="tapGrid(index)" :key="index">
-				<uni-icons class="icon" color="#007AFF" :type="item.icon" size="26"></uni-icons>
+				<uni-icons class="icon" color="#2B5CE6" :type="item.icon" size="26"></uni-icons>
 				<text class="text">{{item.text}}</text>
 			</uni-grid-item>
 		</uni-grid>
@@ -384,7 +384,7 @@
 	.defaultAvatarUrl{
 		width: 150rpx;
 		height: 150rpx;
-		background-color: #007aff;
+		background-color: #2B5CE6;
 		border-radius: 100%;
 		justify-content: center;
 		align-items: center;
@@ -411,7 +411,7 @@
 
 	.center-list-cell {
 		width: 750rpx;
-		background-color: #007AFF;
+		background-color: #2B5CE6;
 		height: 40rpx;
 	}
 

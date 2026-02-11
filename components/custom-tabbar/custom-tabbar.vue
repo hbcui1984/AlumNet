@@ -104,7 +104,7 @@ export default {
   align-items: center;
   height: 100rpx;
   background-color: #ffffff;
-  border-top: 1rpx solid #f0f0f0;
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.04);
   z-index: 999;
 }
 
