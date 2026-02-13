@@ -1,0 +1,14 @@
+{
+  "name": "alumni-admin-co",
+  "version": "1.0.0",
+  "description": "校友会管理端云对象",
+  "main": "index.obj.js",
+  "dependencies": {
+    "uni-id-common": "file:../../../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common"
+  },
+  "cloudfunction-config": {
+    "memorySize": 256,
+    "timeout": 30,
+    "concurrency": 10
+  }
+}
