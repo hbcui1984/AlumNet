@@ -168,6 +168,7 @@ import customTabbar from '@/components/custom-tabbar/custom-tabbar.vue'
 const alumniCo = uniCloud.importObject('alumni-co')
 const alumniSearchCo = uniCloud.importObject('alumni-search-co')
 const alumniFriendCo = uniCloud.importObject('alumni-friend-co')
+const alumniActivityCo = uniCloud.importObject('alumni-activity-co')
 
 export default {
   components: {
@@ -224,6 +225,19 @@ export default {
         console.error('加载统计数据失败', e)
       }
 
+      // 加载活动统计
+      try {
+        const activityStatsRes = await alumniActivityCo.getActivityStatistics()
+        if (activityStatsRes.errCode === 0) {
+          this.statistics = { ...this.statistics, ...activityStatsRes.data }
+        }
+      } catch (e) {
+        console.error('加载活动统计失败', e)
+      }
+
+      // 加载最新活动
+      this.loadLatestActivities()
+
       // 如果已登录且token未过期，加载更多数据
       if (this.hasLogin && uniCloud.getCurrentUserInfo().tokenExpired > Date.now()) {
         this.loadRecommendedAlumni()
@@ -248,6 +262,20 @@ export default {
         }
       } catch (e) {
         console.error('加载好友请求数量失败', e)
+      }
+    },
+    async loadLatestActivities() {
+      try {
+        const res = await alumniActivityCo.getActivityList({
+          status: 1,
+          pageNum: 1,
+          pageSize: 3
+        })
+        if (res.errCode === 0) {
+          this.latestActivities = res.data.list
+        }
+      } catch (e) {
+        console.error('加载最新活动失败', e)
       }
     },
     getAlumniInfo(alumni) {
@@ -291,18 +319,24 @@ export default {
       })
     },
     goToActivities() {
-      uni.showToast({ title: '功能开发中', icon: 'none' })
+      uni.navigateTo({
+        url: '/pages/activity/list'
+      })
     },
     goToOrganizations() {
-      uni.showToast({ title: '功能开发中', icon: 'none' })
+      uni.navigateTo({
+        url: '/pages/alumni/organizations/list'
+      })
+    },
+    goToActivityDetail(id) {
+      uni.navigateTo({
+        url: `/pages/activity/detail?id=${id}`
+      })
     },
     goToAlumniDetail(id) {
       uni.navigateTo({
         url: `/pages/alumni/detail/detail?id=${id}`
       })
-    },
-    goToActivityDetail(id) {
-      uni.showToast({ title: '功能开发中', icon: 'none' })
     }
   }
 }

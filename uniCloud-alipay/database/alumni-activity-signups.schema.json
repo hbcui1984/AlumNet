@@ -1,0 +1,74 @@
+{
+  "bsonType": "object",
+  "required": ["activityId", "userId", "status"],
+  "permission": {
+    "read": "doc.userId == auth.uid",
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "bsonType": "string"
+    },
+    "activityId": {
+      "bsonType": "string",
+      "description": "活动ID",
+      "foreignKey": "alumni-activities._id"
+    },
+    "userId": {
+      "bsonType": "string",
+      "description": "报名用户ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "contactName": {
+      "bsonType": "string",
+      "description": "联系人姓名"
+    },
+    "contactPhone": {
+      "bsonType": "string",
+      "description": "联系电话"
+    },
+    "remark": {
+      "bsonType": "string",
+      "description": "备注信息"
+    },
+    "status": {
+      "bsonType": "int",
+      "description": "状态: 0-已报名 1-已签到 -1-已取消",
+      "enum": [-1, 0, 1],
+      "defaultValue": 0
+    },
+    "signupTime": {
+      "bsonType": "timestamp",
+      "description": "报名时间"
+    },
+    "checkInTime": {
+      "bsonType": "timestamp",
+      "description": "签到时间"
+    },
+    "cancelTime": {
+      "bsonType": "timestamp",
+      "description": "取消时间"
+    },
+    "createTime": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  },
+  "indexes": [
+    {
+      "name": "idx_activity_user",
+      "keyPath": ["activityId", "userId"],
+      "unique": true
+    },
+    {
+      "name": "idx_user_status",
+      "keyPath": ["userId", "status"],
+      "unique": false
+    }
+  ]
+}

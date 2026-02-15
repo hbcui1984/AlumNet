@@ -31,7 +31,7 @@
 						<image :src="imgSrc" mode="widthFix"></image>
 					</button>
 					<!-- #endif -->
-					<view v-if="this.needAgreements && !this.agree" class="mobile-login-agreement-layer" @click="showAgreementModal"></view>
+					<view v-if="needAgreements && !agree" class="mobile-login-agreement-layer" @click="showAgreementModal"></view>
 				</view>
 				<uni-id-pages-agreements scope="register" ref="agreements"></uni-id-pages-agreements>
 			</view>

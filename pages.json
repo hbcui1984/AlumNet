@@ -51,6 +51,50 @@
 			}
 		},
 		{
+			"path": "pages/alumni/organizations/list",
+			"style": {
+				"navigationBarTitleText": "校友组织"
+			}
+		},
+		{
+			"path": "pages/alumni/organizations/detail",
+			"style": {
+				"navigationBarTitleText": "组织详情"
+			}
+		},
+		{
+			"path": "pages/alumni/organizations/create",
+			"style": {
+				"navigationBarTitleText": "创建组织"
+			}
+		},
+		{
+			"path": "pages/activity/list",
+			"style": {
+				"navigationBarTitleText": "校友活动",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/activity/detail",
+			"style": {
+				"navigationBarTitleText": "活动详情"
+			}
+		},
+		{
+			"path": "pages/activity/publish",
+			"style": {
+				"navigationBarTitleText": "发布活动"
+			}
+		},
+		{
+			"path": "pages/activity/my",
+			"style": {
+				"navigationBarTitleText": "我的活动",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
 			"path": "pages/list/list",
 			"style": {
 				// #ifndef APP
@@ -316,7 +360,10 @@
 			"/pages/alumni/detail/detail",
 			"/pages/alumni/profile/profile",
 			"/pages/alumni/friends/friends",
-			"/pages/alumni/requests/requests"
+			"/pages/alumni/requests/requests",
+			"/pages/alumni/organizations/create",
+			"/pages/activity/publish",
+			"/pages/activity/my"
 		],
 		"resToLogin": true
 	}

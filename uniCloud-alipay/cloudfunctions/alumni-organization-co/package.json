@@ -1,0 +1,16 @@
+{
+  "name": "alumni-organization-co",
+  "version": "1.0.0",
+  "description": "校友组织云对象 - 组织管理、成员管理",
+  "main": "index.obj.js",
+  "dependencies": {
+    "uni-id-common": "file:../../../uni_modules/uni-id-common/uniCloud/cloudfunctions/common/uni-id-common"
+  },
+  "extensions": {
+    "uni-cloud-jql": {}
+  },
+  "cloudfunction-config": {
+    "memorySize": 512,
+    "timeout": 30
+  }
+}
