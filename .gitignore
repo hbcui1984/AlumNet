@@ -31,3 +31,5 @@ npm-debug.log*
 .hbuilderx/
 
 # App config (contains appid)
+# uni-id config contains WeChat appid/secret, do not commit local changes
+uni_modules/uni-config-center/uniCloud/cloudfunctions/common/uni-config-center/uni-id/config.json
