@@ -47,14 +47,14 @@
             <text>交换名片</text>
           </button>
           <button
-            v-else-if="alumni.cardRequestStatus.type === 'sent'"
+            v-else-if="alumni.cardRequestStatus?.type === 'sent'"
             class="action-btn disabled full"
             disabled
           >
-            <text>已发送请求</text>
+            <text>已发送名片请求</text>
           </button>
           <button
-            v-else-if="alumni.cardRequestStatus.type === 'received'"
+            v-else-if="alumni.cardRequestStatus?.type === 'received'"
             class="action-btn primary full"
             @click="acceptCardRequest"
           >
@@ -116,13 +116,15 @@
               <uni-icons type="flag" size="20" color="var(--primary-color)"></uni-icons>
             </view>
             <view class="edu-content">
-              <view class="edu-title">
-                <text class="degree">{{ getDegreeLabel(edu.degree) }}</text>
-                <text v-if="edu.isPrimary" class="primary-tag">主要</text>
+              <view class="edu-header">
+                <view class="edu-title">
+                  <text class="degree">{{ getDegreeLabel(edu.degree) }}</text>
+                  <text v-if="edu.isPrimary" class="primary-tag">主要</text>
+                </view>
+                <text class="edu-time">{{ edu.enrollmentYear }} - {{ edu.graduationYear || '至今' }}</text>
               </view>
-              <text class="edu-time">{{ edu.enrollmentYear }} - {{ edu.graduationYear || '至今' }}</text>
-              <text v-if="edu.college" class="edu-detail">{{ edu.college }}</text>
-              <text v-if="edu.major" class="edu-detail">{{ edu.major }}</text>
+              <text v-if="edu.college" class="edu-college">{{ edu.college }}</text>
+              <text v-if="edu.major" class="edu-major">专业：{{ edu.major }}</text>
             </view>
           </view>
         </view>
@@ -413,7 +415,7 @@ export default {
   top: 0;
   left: 0;
   right: 0;
-  height: 240rpx;
+  height: 400rpx;
   background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
 }
 
@@ -443,7 +445,7 @@ export default {
 .name {
   font-size: 40rpx;
   font-weight: bold;
-  color: #333;
+  color: #fff;
 }
 
 .verified-badge {
@@ -451,8 +453,8 @@ export default {
   flex-direction: row;
   align-items: center;
   margin-left: 12rpx;
-  padding: 4rpx 12rpx;
-  background-color: var(--primary-color);
+  padding: 6rpx 16rpx;
+  background-color: rgba(255, 255, 255, 0.25);
   border-radius: 20rpx;
   font-size: 22rpx;
   color: #fff;
@@ -462,7 +464,7 @@ export default {
   margin-top: 16rpx;
   padding: 0 40rpx;
   font-size: 28rpx;
-  color: #666;
+  color: rgba(255, 255, 255, 0.9);
   text-align: center;
 }
 
@@ -599,6 +601,54 @@ export default {
 
 .edu-content {
   flex: 1;
+}
+
+.edu-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.edu-title {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.degree {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.primary-tag {
+  margin-left: 12rpx;
+  padding: 4rpx 12rpx;
+  font-size: 22rpx;
+  color: #fff;
+  background-color: var(--primary-color);
+  border-radius: 8rpx;
+}
+
+.edu-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.edu-college {
+  font-size: 28rpx;
+  color: #333;
+  display: block;
+  margin-bottom: 8rpx;
+  font-weight: 500;
+}
+
+.edu-major {
+  font-size: 26rpx;
+  color: #666;
+  display: block;
 }
 
 .edu-title {
