@@ -280,7 +280,6 @@ export default {
         }
       } catch (e) {
         console.error('发送名片请求失败', e)
-        uni.showToast({ title: '发送失败', icon: 'none' })
       } finally {
         this.sendingRequest = false
       }

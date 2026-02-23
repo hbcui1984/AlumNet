@@ -94,17 +94,10 @@ export default async function() {
 		},
 		fail(e){
 			console.error(e);
-			// if (debug) {
-			// 	uni.showModal({
-			// 		content: JSON.stringify(e),
-			// 		showCancel: false
-			// 	});
-			// }else{
-			// 	uni.showToast({
-			// 		title: '系统错误请稍后再试',
-			// 		icon:'error'
-			// 	});
-			// }
+			uni.showToast({
+				title: e.errMsg || '请求失败',
+				icon: 'none'
+			});
 		}
 	})
 
