@@ -8,7 +8,6 @@
     <template v-else-if="alumni">
       <!-- 头部信息 -->
       <view class="header-section">
-        <view class="header-bg"></view>
         <view class="profile-info">
           <image
             class="avatar"
@@ -23,44 +22,43 @@
             </view>
           </view>
           <text v-if="alumni.bio" class="bio">{{ alumni.bio }}</text>
+          <!-- 操作按钮 -->
+          <view class="action-section">
+            <template v-if="alumni.isFriend">
+              <button class="action-btn primary" @click="startChat">
+                <uni-icons type="chat" size="20" color="#fff"></uni-icons>
+                <text>发消息</text>
+              </button>
+              <button class="action-btn secondary" @click="showFriendOptions">
+                <uni-icons type="more" size="20" color="#fff"></uni-icons>
+              </button>
+            </template>
+            <template v-else>
+              <button
+                v-if="!alumni.cardRequestStatus"
+                class="action-btn primary full"
+                @click="sendCardRequest"
+              >
+                <uni-icons type="person-filled" size="20" color="#fff"></uni-icons>
+                <text>交换名片</text>
+              </button>
+              <button
+                v-else-if="alumni.cardRequestStatus?.type === 'sent'"
+                class="action-btn disabled full"
+                disabled
+              >
+                <text>已发送名片请求</text>
+              </button>
+              <button
+                v-else-if="alumni.cardRequestStatus?.type === 'received'"
+                class="action-btn primary full"
+                @click="acceptCardRequest"
+              >
+                <text>接受名片请求</text>
+              </button>
+            </template>
+          </view>
         </view>
-      </view>
-
-      <!-- 操作按钮 -->
-      <view class="action-section">
-        <template v-if="alumni.isFriend">
-          <button class="action-btn primary" @click="startChat">
-            <uni-icons type="chat" size="20" color="#fff"></uni-icons>
-            <text>发消息</text>
-          </button>
-          <button class="action-btn secondary" @click="showFriendOptions">
-            <uni-icons type="more" size="20" color="var(--primary-color)"></uni-icons>
-          </button>
-        </template>
-        <template v-else>
-          <button
-            v-if="!alumni.cardRequestStatus"
-            class="action-btn primary full"
-            @click="sendCardRequest"
-          >
-            <uni-icons type="person-filled" size="20" color="#fff"></uni-icons>
-            <text>交换名片</text>
-          </button>
-          <button
-            v-else-if="alumni.cardRequestStatus?.type === 'sent'"
-            class="action-btn disabled full"
-            disabled
-          >
-            <text>已发送名片请求</text>
-          </button>
-          <button
-            v-else-if="alumni.cardRequestStatus?.type === 'received'"
-            class="action-btn primary full"
-            @click="acceptCardRequest"
-          >
-            <text>接受名片请求</text>
-          </button>
-        </template>
       </view>
 
       <!-- 基本信息 -->
@@ -118,13 +116,13 @@
             <view class="edu-content">
               <view class="edu-header">
                 <view class="edu-title">
-                  <text class="degree">{{ getDegreeLabel(edu.degree) }}</text>
+                  <text class="edu-college">{{ edu.college || getDegreeLabel(edu.degree) }}</text>
+                  <text class="degree-tag">{{ getDegreeLabel(edu.degree) }}</text>
                   <text v-if="edu.isPrimary" class="primary-tag">主要</text>
                 </view>
                 <text class="edu-time">{{ edu.enrollmentYear }} - {{ edu.graduationYear || '至今' }}</text>
               </view>
-              <text v-if="edu.college" class="edu-college">{{ edu.college }}</text>
-              <text v-if="edu.major" class="edu-major">专业：{{ edu.major }}</text>
+              <text v-if="edu.major" class="edu-major">{{ edu.major }}</text>
             </view>
           </view>
         </view>
@@ -407,16 +405,8 @@ export default {
 
 .header-section {
   position: relative;
-  padding-bottom: 40rpx;
-}
-
-.header-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 400rpx;
   background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  padding-bottom: 40rpx;
 }
 
 .profile-info {
@@ -424,7 +414,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 100rpx;
+  padding-top: 60rpx;
 }
 
 .avatar {
@@ -472,7 +462,8 @@ export default {
   display: flex;
   flex-direction: row;
   justify-content: center;
-  padding: 0 40rpx 30rpx;
+  margin-top: 30rpx;
+  padding: 0 40rpx;
 }
 
 .action-btn {
@@ -492,15 +483,14 @@ export default {
   }
 
   &.primary {
-    background-color: var(--primary-color);
-    background-image: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    background-color: rgba(255, 255, 255, 0.25);
     color: #fff;
   }
 
   &.secondary {
-    background-color: #fff;
-    border: 2rpx solid var(--primary-color);
-    color: var(--primary-color);
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 2rpx solid rgba(255, 255, 255, 0.5);
+    color: #fff;
   }
 
   &.disabled {
@@ -608,60 +598,30 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12rpx;
+  margin-bottom: 8rpx;
 }
 
 .edu-title {
   display: flex;
   flex-direction: row;
   align-items: center;
-}
-
-.degree {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
-}
-
-.primary-tag {
-  margin-left: 12rpx;
-  padding: 4rpx 12rpx;
-  font-size: 22rpx;
-  color: #fff;
-  background-color: var(--primary-color);
-  border-radius: 8rpx;
-}
-
-.edu-time {
-  font-size: 24rpx;
-  color: #999;
+  flex: 1;
+  flex-wrap: wrap;
 }
 
 .edu-college {
-  font-size: 28rpx;
-  color: #333;
-  display: block;
-  margin-bottom: 8rpx;
-  font-weight: 500;
-}
-
-.edu-major {
-  font-size: 26rpx;
-  color: #666;
-  display: block;
-}
-
-.edu-title {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 8rpx;
-}
-
-.degree {
   font-size: 30rpx;
   font-weight: bold;
   color: #333;
+}
+
+.degree-tag {
+  margin-left: 12rpx;
+  padding: 2rpx 12rpx;
+  font-size: 22rpx;
+  color: var(--primary-color);
+  background-color: rgba(43, 92, 230, 0.1);
+  border-radius: 4rpx;
 }
 
 .primary-tag {
@@ -673,12 +633,14 @@ export default {
   border-radius: 4rpx;
 }
 
-.edu-time,
-.edu-detail {
+.edu-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.edu-major {
   font-size: 26rpx;
   color: #666;
-  display: block;
-  margin-bottom: 4rpx;
 }
 
 .interests-wrap {
