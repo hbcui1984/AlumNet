@@ -80,6 +80,29 @@
             </picker>
           </view>
 
+          <!-- 是否本校（仅大学学历显示） -->
+          <view v-if="isUniversityDegree(edu.degree)" class="form-item">
+            <text class="form-label">就读学校</text>
+            <view class="radio-group">
+              <view class="radio-item" :class="{ active: edu.isLocal !== false }" @click="edu.isLocal = true">
+                <text>{{ schoolConfig.name || '本校' }}</text>
+              </view>
+              <view class="radio-item" :class="{ active: edu.isLocal === false }" @click="edu.isLocal = false">
+                <text>其他学校</text>
+              </view>
+            </view>
+          </view>
+
+          <!-- 学校名称（其他学校） -->
+          <view v-if="isUniversityDegree(edu.degree) && edu.isLocal === false" class="form-item">
+            <text class="form-label required">学校名称</text>
+            <input
+              class="form-input"
+              v-model="edu.schoolName"
+              placeholder="请输入学校名称"
+            />
+          </view>
+
           <!-- 入学年份 -->
           <view class="form-item">
             <text class="form-label required">入学年份</text>
@@ -112,11 +135,11 @@
             </picker>
           </view>
 
-          <!-- 学院（大学） -->
+          <!-- 学院（本校大学学历用picker） -->
           <view v-if="isUniversityDegree(edu.degree)" class="form-item">
             <text class="form-label">学院</text>
             <picker
-              v-if="collegeOptions.length > 0"
+              v-if="edu.isLocal !== false && collegeOptions.length > 0"
               :value="getCollegeIndex(edu.college)"
               :range="collegeOptions"
               range-key="name"
@@ -135,11 +158,11 @@
             />
           </view>
 
-          <!-- 专业（大学） -->
+          <!-- 专业（本校大学学历用picker） -->
           <view v-if="isUniversityDegree(edu.degree)" class="form-item">
             <text class="form-label">专业</text>
             <picker
-              v-if="getMajorOptions(edu.college).length > 0"
+              v-if="edu.isLocal !== false && getMajorOptions(edu.college).length > 0"
               :value="getMajorIndex(edu.college, edu.major)"
               :range="getMajorOptions(edu.college)"
               @change="onMajorChange($event, index)"
@@ -347,6 +370,8 @@ export default {
         educations: [
           {
             degree: '',
+            isLocal: true,
+            schoolName: '',
             enrollmentYear: null,
             graduationYear: null,
             college: '',
@@ -570,6 +595,8 @@ export default {
       }
       this.formData.educations.push({
         degree: '',
+        isLocal: true,
+        schoolName: '',
         enrollmentYear: null,
         graduationYear: null,
         college: '',
@@ -620,6 +647,11 @@ export default {
         }
         if (!edu.enrollmentYear) {
           uni.showToast({ title: '请选择入学年份', icon: 'none' })
+          return false
+        }
+        // 非本校的大学学历需要填写学校名称
+        if (this.isUniversityDegree(edu.degree) && edu.isLocal === false && !edu.schoolName) {
+          uni.showToast({ title: '请输入学校名称', icon: 'none' })
           return false
         }
         // 高中/初中校友会需要填写班主任
@@ -862,6 +894,37 @@ export default {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+  }
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: row;
+}
+
+.radio-item {
+  flex: 1;
+  height: 72rpx;
+  line-height: 72rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: #666;
+  background-color: #f5f5f5;
+  border: 2rpx solid #e0e0e0;
+
+  &:first-child {
+    border-radius: 12rpx 0 0 12rpx;
+    border-right: none;
+  }
+
+  &:last-child {
+    border-radius: 0 12rpx 12rpx 0;
+  }
+
+  &.active {
+    color: var(--primary-color);
+    background-color: rgba(43, 92, 230, 0.08);
+    border-color: var(--primary-color);
   }
 }
 
