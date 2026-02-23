@@ -42,45 +42,30 @@ async function doHandleCardRequest(currentUid, { requestId, action, rejectReason
   checkLogin(currentUid)
 
   if (!requestId) {
-    throw {
-      errCode: 'INVALID_PARAM',
-      errMsg: '请指定请求ID'
-    }
+    return { errCode: 'INVALID_PARAM', errMsg: '请指定请求ID' }
   }
 
   if (!['accept', 'reject'].includes(action)) {
-    throw {
-      errCode: 'INVALID_PARAM',
-      errMsg: '操作类型无效'
-    }
+    return { errCode: 'INVALID_PARAM', errMsg: '操作类型无效' }
   }
 
   const cardCollection = db.collection('alumni-card-requests')
   const requestRes = await cardCollection.doc(requestId).get()
 
   if (!requestRes.data || requestRes.data.length === 0) {
-    throw {
-      errCode: 'REQUEST_NOT_FOUND',
-      errMsg: '请求不存在'
-    }
+    return { errCode: 'REQUEST_NOT_FOUND', errMsg: '请求不存在' }
   }
 
   const request = requestRes.data[0]
 
   // 检查权限（只有接收人可以处理）
   if (request.toUserId !== currentUid) {
-    throw {
-      errCode: 'NO_PERMISSION',
-      errMsg: '无权处理此请求'
-    }
+    return { errCode: 'NO_PERMISSION', errMsg: '无权处理此请求' }
   }
 
   // 检查状态
   if (request.status !== 0) {
-    throw {
-      errCode: 'REQUEST_PROCESSED',
-      errMsg: '该请求已处理'
-    }
+    return { errCode: 'REQUEST_PROCESSED', errMsg: '该请求已处理' }
   }
 
   // 检查是否过期
@@ -89,10 +74,7 @@ async function doHandleCardRequest(currentUid, { requestId, action, rejectReason
       status: 3,
       handleTime: Date.now()
     })
-    throw {
-      errCode: 'REQUEST_EXPIRED',
-      errMsg: '请求已过期'
-    }
+    return { errCode: 'REQUEST_EXPIRED', errMsg: '请求已过期' }
   }
 
   const now = Date.now()
@@ -134,10 +116,7 @@ async function doHandleCardRequest(currentUid, { requestId, action, rejectReason
       }
     } catch (e) {
       await transaction.rollback()
-      throw {
-        errCode: 'SYSTEM_ERROR',
-        errMsg: '操作失败，请重试'
-      }
+      return { errCode: 'SYSTEM_ERROR', errMsg: '操作失败，请重试' }
     }
   } else {
     await cardCollection.doc(requestId).update({
@@ -182,17 +161,11 @@ module.exports = {
     checkLogin(this.uid)
 
     if (!toUserId) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '请指定接收人'
-      }
+      return { errCode: 'INVALID_PARAM', errMsg: '请指定接收人' }
     }
 
     if (toUserId === this.uid) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '不能向自己发送名片请求'
-      }
+      return { errCode: 'INVALID_PARAM', errMsg: '不能向自己发送名片请求' }
     }
 
     // 检查自己是否已认证
@@ -203,10 +176,7 @@ module.exports = {
     }).get()
 
     if (myInfo.data[0]?.alumniStatus !== 1) {
-      throw {
-        errCode: 'NOT_VERIFIED',
-        errMsg: '请先完成校友认证'
-      }
+      return { errCode: 'NOT_VERIFIED', errMsg: '请先完成校友认证' }
     }
 
     // 检查对方是否存在且已认证
@@ -216,17 +186,11 @@ module.exports = {
     }).get()
 
     if (!targetInfo.data || targetInfo.data.length === 0) {
-      throw {
-        errCode: 'USER_NOT_FOUND',
-        errMsg: '用户不存在'
-      }
+      return { errCode: 'USER_NOT_FOUND', errMsg: '用户不存在' }
     }
 
     if (targetInfo.data[0]?.alumniStatus !== 1) {
-      throw {
-        errCode: 'TARGET_NOT_VERIFIED',
-        errMsg: '对方尚未通过校友认证'
-      }
+      return { errCode: 'TARGET_NOT_VERIFIED', errMsg: '对方尚未通过校友认证' }
     }
 
     // 检查是否已是好友
@@ -239,10 +203,7 @@ module.exports = {
     }).count()
 
     if (friendRes.total > 0) {
-      throw {
-        errCode: 'ALREADY_FRIEND',
-        errMsg: '你们已经是好友了'
-      }
+      return { errCode: 'ALREADY_FRIEND', errMsg: '你们已经是好友了' }
     }
 
     // 检查是否有待处理的请求
@@ -256,10 +217,7 @@ module.exports = {
     }).count()
 
     if (sentPending.total > 0) {
-      throw {
-        errCode: 'REQUEST_PENDING',
-        errMsg: '您已发送过请求，请等待对方处理'
-      }
+      return { errCode: 'REQUEST_PENDING', errMsg: '您已发送过请求，请等待对方处理' }
     }
 
     // 检查对方发给我的待处理请求（如果有，直接同意成为好友）
@@ -672,17 +630,11 @@ module.exports = {
     checkLogin(this.uid)
 
     if (!friendUserId) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '请指定好友'
-      }
+      return { errCode: 'INVALID_PARAM', errMsg: '请指定好友' }
     }
 
     if (remark && remark.length > 50) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '备注名最多50个字符'
-      }
+      return { errCode: 'INVALID_PARAM', errMsg: '备注名最多50个字符' }
     }
 
     const [userIdA, userIdB] = [this.uid, friendUserId].sort()
@@ -696,10 +648,7 @@ module.exports = {
     }).get()
 
     if (!friendRes.data || friendRes.data.length === 0) {
-      throw {
-        errCode: 'NOT_FRIEND',
-        errMsg: '对方不是您的好友'
-      }
+      return { errCode: 'NOT_FRIEND', errMsg: '对方不是您的好友' }
     }
 
     const updateData = {}
@@ -728,10 +677,7 @@ module.exports = {
     checkLogin(this.uid)
 
     if (!friendUserId) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '请指定好友'
-      }
+      return { errCode: 'INVALID_PARAM', errMsg: '请指定好友' }
     }
 
     const [userIdA, userIdB] = [this.uid, friendUserId].sort()
@@ -745,10 +691,7 @@ module.exports = {
     }).get()
 
     if (!friendRes.data || friendRes.data.length === 0) {
-      throw {
-        errCode: 'NOT_FRIEND',
-        errMsg: '对方不是您的好友'
-      }
+      return { errCode: 'NOT_FRIEND', errMsg: '对方不是您的好友' }
     }
 
     const friend = friendRes.data[0]
@@ -761,10 +704,7 @@ module.exports = {
     } else if ((friend.status === 2 && !isUserA) || (friend.status === 3 && isUserA)) {
       newStatus = 4 // 双向解除
     } else {
-      throw {
-        errCode: 'ALREADY_DELETED',
-        errMsg: '您已删除该好友'
-      }
+      return { errCode: 'ALREADY_DELETED', errMsg: '您已删除该好友' }
     }
 
     const transaction = await db.startTransaction()
@@ -796,10 +736,7 @@ module.exports = {
       }
     } catch (e) {
       await transaction.rollback()
-      throw {
-        errCode: 'SYSTEM_ERROR',
-        errMsg: '操作失败，请重试'
-      }
+      return { errCode: 'SYSTEM_ERROR', errMsg: '操作失败，请重试' }
     }
   },
 
@@ -813,36 +750,24 @@ module.exports = {
     checkLogin(this.uid)
 
     if (!requestId) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '请指定请求ID'
-      }
+      return { errCode: 'INVALID_PARAM', errMsg: '请指定请求ID' }
     }
 
     const cardCollection = db.collection('alumni-card-requests')
     const requestRes = await cardCollection.doc(requestId).get()
 
     if (!requestRes.data || requestRes.data.length === 0) {
-      throw {
-        errCode: 'REQUEST_NOT_FOUND',
-        errMsg: '请求不存在'
-      }
+      return { errCode: 'REQUEST_NOT_FOUND', errMsg: '请求不存在' }
     }
 
     const request = requestRes.data[0]
 
     if (request.fromUserId !== this.uid) {
-      throw {
-        errCode: 'NO_PERMISSION',
-        errMsg: '无权撤回此请求'
-      }
+      return { errCode: 'NO_PERMISSION', errMsg: '无权撤回此请求' }
     }
 
     if (request.status !== 0) {
-      throw {
-        errCode: 'REQUEST_PROCESSED',
-        errMsg: '该请求已处理，无法撤回'
-      }
+      return { errCode: 'REQUEST_PROCESSED', errMsg: '该请求已处理，无法撤回' }
     }
 
     // 直接删除请求

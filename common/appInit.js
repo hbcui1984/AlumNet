@@ -94,10 +94,6 @@ export default async function() {
 		},
 		fail(e){
 			console.error(e);
-			uni.showToast({
-				title: e.errMsg || '请求失败',
-				icon: 'none'
-			});
 		}
 	})
 
