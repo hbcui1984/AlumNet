@@ -3,15 +3,17 @@
 		<uni-sign-in ref="signIn"></uni-sign-in>
 		<view class="userInfo" @click.capture="toUserInfo">
 			<cloud-image width="150rpx" height="150rpx" v-if="hasLogin&&userInfo.avatar_file&&userInfo.avatar_file.url" :src="userInfo.avatar_file.url"></cloud-image>
+			<image v-else-if="hasLogin&&userInfo.avatar" :src="userInfo.avatar" style="width:150rpx;height:150rpx;border-radius:50%;" mode="aspectFill"></image>
 
 			<view v-else class="defaultAvatarUrl">
 				<uni-icons color="#ffffff" size="50" type="person-filled" />
 			</view>
 
 			<view class="logo-title">
-				<text class="uer-name" v-if="hasLogin">{{userInfo.nickname||userInfo.username||userInfo.mobile||'点击设置昵称'}}</text>
+				<text class="uer-name" v-if="hasLogin">{{displayName}}</text>
 				<text class="uer-name" v-else>{{$t('mine.notLogged')}}</text>
 			</view>
+			<text v-if="hasLogin && !hasProfile" class="profile-hint">点击完善个人信息 ></text>
 		</view>
 		<uni-grid class="grid" :column="4" :showBorder="false" :square="true">
 			<uni-grid-item class="item" v-for="(item,index) in gridList" @click.native="tapGrid(index)" :key="index">
@@ -170,6 +172,14 @@
 			},
 			hasLogin(){
 				return store.hasLogin
+			},
+			displayName() {
+				const u = this.userInfo
+				return u.realName || u.nickname || u.username || u.mobile || '新用户'
+			},
+			hasProfile() {
+				const u = this.userInfo
+				return !!(u.nickname || u.realName || (u.avatar_file && u.avatar_file.url))
 			},
 			// #ifdef APP-PLUS
 			appVersion() {
@@ -388,6 +398,12 @@
 		border-radius: 100%;
 		justify-content: center;
 		align-items: center;
+	}
+
+	.profile-hint {
+		font-size: 26rpx;
+		color: rgba(255, 255, 255, 0.7);
+		margin-top: 8rpx;
 	}
 
 	.logo-title {
