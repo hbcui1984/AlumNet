@@ -115,7 +115,11 @@ module.exports = {
     const existingConfig = await db.collection('alumni-school-config').limit(1).get()
 
     const configData = {
-      appName: config.appName || '校友会',
+      name: config.name || config.appName || '校友会',
+      appName: config.appName || config.name || '校友会',
+      type: config.type || 'university',
+      localDegrees: config.localDegrees || [],
+      colleges: config.colleges || [],
       logo: config.logo || '',
       branding: {
         primaryColor: config.branding?.primaryColor || '#2B5CE6',
@@ -128,7 +132,8 @@ module.exports = {
         enableChat: config.features?.enableChat !== false,
         enableActivity: config.features?.enableActivity !== false,
         enableRecommendVerify: config.features?.enableRecommendVerify === true,
-        recommendCount: parseInt(config.features?.recommendCount) || 3
+        recommendCount: parseInt(config.features?.recommendCount) || 3,
+        requireProof: config.features?.requireProof === true
       },
       contact: {
         email: config.contact?.email || '',
@@ -252,13 +257,17 @@ module.exports = {
       return { errCode: 1, errMsg: '参数错误' }
     }
 
-    const res = await db.collection('uni-id-users').doc(id).get()
+    const [res, configRes] = await Promise.all([
+      db.collection('uni-id-users').doc(id).get(),
+      db.collection('alumni-school-config').limit(1).get()
+    ])
 
     if (!res.data || res.data.length === 0) {
       return { errCode: 2, errMsg: '记录不存在' }
     }
 
     const user = res.data[0]
+    const schoolName = configRes.data?.[0]?.name || ''
     const primaryEdu = user.educations?.find(e => e.isPrimary) || user.educations?.[0]
 
     // 适配前端期望的数据结构
@@ -271,6 +280,7 @@ module.exports = {
         gender: user.gender,
         idCard: user.idCard,
         status: user.alumniStatus ?? -1,
+        schoolName,
         education: primaryEdu || null,
         classTeacher: user.classTeacher,
         middleSchool: user.middleSchool,
@@ -364,15 +374,19 @@ module.exports = {
 
     await db.collection('uni-id-users').doc(id).update(updateData)
 
-    // 写入审计日志
-    await db.collection('alumni-verify-logs').add({
-      userId: id,
-      method: 'admin_review',
-      result: status === 1 ? 'approved' : 'rejected',
-      rejectReason: status === 2 ? (rejectReason || '') : undefined,
-      reviewerId: this.uid,
-      createTime: now
-    })
+    // 写入审计日志（容错，不影响主流程）
+    try {
+      await db.collection('alumni-verify-logs').add({
+        userId: id,
+        method: 'admin',
+        result: status === 1 ? 'approved' : 'rejected',
+        rejectReason: status === 2 ? (rejectReason || '') : '',
+        operatorId: this.uid,
+        createTime: now
+      })
+    } catch (e) {
+      console.warn('写入审计日志失败', e.message)
+    }
 
     return { errCode: 0, errMsg: status === 1 ? '审核通过' : '已拒绝' }
   },
@@ -457,12 +471,17 @@ module.exports = {
       return { errCode: 1, errMsg: '参数错误' }
     }
 
-    const userRes = await db.collection('uni-id-users').doc(userId).get()
+    const [userRes, configRes] = await Promise.all([
+      db.collection('uni-id-users').doc(userId).get(),
+      db.collection('alumni-school-config').limit(1).get()
+    ])
+
     if (!userRes.data || userRes.data.length === 0) {
       return { errCode: 2, errMsg: '用户不存在' }
     }
 
     const user = userRes.data[0]
+    const schoolName = configRes.data?.[0]?.name || ''
     const primaryEdu = user.educations?.find(e => e.isPrimary) || user.educations?.[0]
 
     return {
@@ -479,23 +498,36 @@ module.exports = {
           register_date: user.register_date,
           last_login_date: user.last_login_date
         },
+        schoolName,
         // 校友信息直接从 user 字段中提取
         alumniInfo: user.alumniStatus >= 0 ? {
           realName: user.realName,
           gender: user.gender,
+          idCard: user.idCard,
+          educations: user.educations || [],
           primaryEducation: primaryEdu || null,
+          workInfo: user.workInfo,
           currentCompany: user.currentCompany,
           currentPosition: user.currentPosition,
           city: user.city,
           industry: user.industry,
-          alumniCardNo: user.alumniCardNo
+          classTeacher: user.classTeacher,
+          middleSchool: user.middleSchool,
+          teachers: user.teachers,
+          messageToSchool: user.messageToSchool,
+          cardPhotoUrl: user.cardPhotoUrl,
+          diplomaUrls: user.diplomaUrls || [],
+          verifyProof: user.verifyProof || [],
+          alumniCardNo: user.alumniCardNo,
+          alumniVerifyMethod: user.alumniVerifyMethod
         } : null,
         // 认证记录信息
         verificationInfo: user.submitTime ? {
           status: user.alumniStatus ?? -1,
           create_date: user.submitTime,
           review_date: user.alumniVerifyTime,
-          reject_reason: user.rejectReason
+          reject_reason: user.rejectReason,
+          alumniVerifyMethod: user.alumniVerifyMethod
         } : null
       }
     }
