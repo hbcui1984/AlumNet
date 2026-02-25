@@ -39,7 +39,7 @@
 
             <!-- 校友照片 -->
             <view class="info-right">
-              <image :src="cardData.avatar || '/static/default-avatar.png'" class="alumni-photo" mode="aspectFill" />
+              <image :src="cardData.cardPhotoUrl || cardData.avatar || '/static/default-avatar.png'" class="alumni-photo" mode="aspectFill" />
             </view>
           </view>
 
@@ -88,19 +88,18 @@ export default {
   },
 
   computed: {
-    // 卡片渐变背景
+    // 卡片渐变背景（优先用 cardData 中内嵌的 branding，其次用 schoolConfig）
     cardGradient() {
-      if (this.schoolConfig && this.schoolConfig.theme) {
-        const { primaryColor, primaryDark } = this.schoolConfig.theme
-        return `linear-gradient(135deg, ${primaryColor || '#4A90E2'} 0%, ${primaryDark || '#2E5C8A'} 100%)`
-      }
-      return 'linear-gradient(135deg, #4A90E2 0%, #2E5C8A 100%)'
+      const branding = this.cardData?.branding || this.schoolConfig?.branding || {}
+      const primary = branding.primaryColor || '#4A90E2'
+      const light = branding.primaryLight || '#2E5C8A'
+      return `linear-gradient(135deg, ${primary} 0%, ${light} 100%)`
     },
 
     // 格式化毕业年份
     formatGraduationYear() {
       if (this.cardData.graduationYear) {
-        return `${this.cardData.graduationYear}-${String(this.cardData.graduationYear).substring(2)}-01`
+        return `${this.cardData.graduationYear}年`
       }
       if (this.cardData.enrollmentYear) {
         return `${this.cardData.enrollmentYear}级`

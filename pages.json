@@ -356,6 +356,7 @@
 		"needLogin": [
 			"/uni_modules/uni-id-pages/pages/userinfo/userinfo",
 			"/pages/alumni/verify/verify",
+			"/pages/alumni/card/card",
 			"/pages/alumni/list/list",
 			"/pages/alumni/detail/detail",
 			"/pages/alumni/profile/profile",
