@@ -42,6 +42,21 @@
         />
       </view>
 
+      <!-- 性别 -->
+      <view class="form-item">
+        <text class="form-label required">性别</text>
+        <radio-group @change="e => formData.gender = parseInt(e.detail.value)">
+          <label class="radio-label">
+            <radio value="1" :checked="formData.gender === 1" color="var(--primary-color)" />
+            <text>男</text>
+          </label>
+          <label class="radio-label">
+            <radio value="2" :checked="formData.gender === 2" color="var(--primary-color)" />
+            <text>女</text>
+          </label>
+        </radio-group>
+      </view>
+
       <!-- 教育经历 -->
       <view class="education-section">
         <view class="education-header">
@@ -80,21 +95,23 @@
             </picker>
           </view>
 
-          <!-- 是否本校（仅大学学历显示） -->
-          <view v-if="isUniversityDegree(edu.degree)" class="form-item">
+          <!-- 是否本校（根据学历类型自动判断是否显示） -->
+          <view v-if="isLocalDegree(edu.degree)" class="form-item">
             <text class="form-label">就读学校</text>
-            <view class="radio-group">
-              <view class="radio-item" :class="{ active: edu.isLocal !== false }" @click="edu.isLocal = true">
+            <radio-group @change="onSchoolTypeChange($event, index)">
+              <label class="radio-label">
+                <radio :value="true" :checked="edu.isLocal !== false" color="var(--primary-color)" />
                 <text>{{ schoolConfig.name || '本校' }}</text>
-              </view>
-              <view class="radio-item" :class="{ active: edu.isLocal === false }" @click="edu.isLocal = false">
+              </label>
+              <label class="radio-label">
+                <radio :value="false" :checked="edu.isLocal === false" color="var(--primary-color)" />
                 <text>其他学校</text>
-              </view>
-            </view>
+              </label>
+            </radio-group>
           </view>
 
-          <!-- 学校名称（其他学校） -->
-          <view v-if="isUniversityDegree(edu.degree) && edu.isLocal === false" class="form-item">
+          <!-- 学校名称（非本校学历类型 或 选了其他学校） -->
+          <view v-if="(!isLocalDegree(edu.degree) && isUniversityDegree(edu.degree)) || (isLocalDegree(edu.degree) && edu.isLocal === false)" class="form-item">
             <text class="form-label required">学校名称</text>
             <input
               class="form-input"
@@ -340,7 +357,10 @@
           <text v-if="edu.college" class="edu-info-detail">{{ edu.college }} {{ edu.major }}</text>
         </view>
       </view>
-      <button class="edit-btn" @click="navigateToProfile">编辑个人资料</button>
+      <view class="verified-actions">
+        <button class="card-btn" @click="navigateToCard">查看校友卡</button>
+        <button class="edit-btn" @click="navigateToProfile">编辑个人资料</button>
+      </view>
     </view>
   </view>
 </template>
@@ -362,6 +382,7 @@ export default {
       schoolConfig: {},
       formData: {
         realName: '',
+        gender: 0,
         workInfo: '',
         message: '',
         city: '',
@@ -557,9 +578,33 @@ export default {
     isUniversityDegree(degree) {
       return ['bachelor', 'master', 'doctor'].includes(degree)
     },
+    // 判断该学历是否为本校提供的学历类型
+    isLocalDegree(degree) {
+      const localDegrees = this.schoolConfig.localDegrees || []
+      return localDegrees.includes(degree)
+    },
+    onSchoolTypeChange(e, index) {
+      const value = e.detail?.value ?? e
+      // radio value 在小程序里是字符串，需要处理
+      this.formData.educations[index].isLocal = value === true || value === 'true'
+      // 切换为本校时清空学校名称
+      if (this.formData.educations[index].isLocal) {
+        this.formData.educations[index].schoolName = ''
+      }
+    },
     onDegreeChange(e, index) {
       const degreeIndex = e.detail?.value ?? e
-      this.formData.educations[index].degree = this.degreeOptions[degreeIndex].value
+      const degree = this.degreeOptions[degreeIndex].value
+      this.formData.educations[index].degree = degree
+      // 如果选了非本校学历类型（不在 localDegrees 里），自动将 isLocal 设为 false
+      const localDegrees = this.schoolConfig.localDegrees || []
+      if (!localDegrees.includes(degree)) {
+        this.formData.educations[index].isLocal = false
+      } else {
+        // 切回本校学历类型时，重置为本校并清空学校名称
+        this.formData.educations[index].isLocal = true
+        this.formData.educations[index].schoolName = ''
+      }
     },
     onEnrollmentYearChange(e, index) {
       const val = e.detail?.value ?? e
@@ -624,6 +669,11 @@ export default {
     },
     onCardPhotoSelect(e) {
       console.log('选择校友卡照片', e)
+      console.log('tempFiles:', e.tempFiles)
+      console.log('tempFilePaths:', e.tempFilePaths)
+      if (e.tempFiles && e.tempFiles.length > 0) {
+        console.log('第一个文件对象:', e.tempFiles[0])
+      }
     },
     onCardPhotoDelete(e) {
       console.log('删除校友卡照片', e)
@@ -637,6 +687,11 @@ export default {
     validateForm() {
       if (!this.formData.realName || this.formData.realName.length < 2) {
         uni.showToast({ title: '请输入真实姓名', icon: 'none' })
+        return false
+      }
+
+      if (!this.formData.gender) {
+        uni.showToast({ title: '请选择性别', icon: 'none' })
         return false
       }
 
@@ -697,14 +752,19 @@ export default {
         let cardPhotoUrl = ''
         if (this.formData.cardPhoto.length > 0) {
           const file = this.formData.cardPhoto[0]
-          if (file.url && !file.url.startsWith('cloud://')) {
+          const filePath = file.path || file.url
+          console.log('准备上传文件，路径:', filePath, '完整对象:', file)
+
+          // 如果已经是云存储URL或HTTPS URL，直接使用
+          if (filePath && (filePath.startsWith('cloud://') || filePath.startsWith('https://') || filePath.startsWith('http://'))) {
+            cardPhotoUrl = filePath
+          } else if (filePath) {
+            // 本地文件才需要上传
             const uploadRes = await uniCloud.uploadFile({
-              filePath: file.url,
+              filePath: filePath,
               cloudPath: `alumni-card-photo/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`
             })
             cardPhotoUrl = uploadRes.fileID
-          } else if (file.url) {
-            cardPhotoUrl = file.url
           }
         }
 
@@ -712,14 +772,17 @@ export default {
         let diplomaUrls = []
         if (this.formData.diplomaPhoto.length > 0) {
           for (const file of this.formData.diplomaPhoto) {
-            if (file.url && !file.url.startsWith('cloud://')) {
+            const filePath = file.path || file.url
+            // 如果已经是云存储URL或HTTPS URL，直接使用
+            if (filePath && (filePath.startsWith('cloud://') || filePath.startsWith('https://') || filePath.startsWith('http://'))) {
+              diplomaUrls.push(filePath)
+            } else if (filePath) {
+              // 本地文件才需要上传
               const uploadRes = await uniCloud.uploadFile({
-                filePath: file.url,
+                filePath: filePath,
                 cloudPath: `diploma-photo/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`
               })
               diplomaUrls.push(uploadRes.fileID)
-            } else if (file.url) {
-              diplomaUrls.push(file.url)
             }
           }
         }
@@ -742,6 +805,7 @@ export default {
 
         const res = await alumniCo.submitVerification({
           realName: this.formData.realName,
+          gender: this.formData.gender,
           workInfo: this.formData.workInfo,
           message: this.formData.message,
           city: this.formData.city,
@@ -773,6 +837,11 @@ export default {
       if (!timestamp) return ''
       const date = new Date(timestamp)
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    },
+    navigateToCard() {
+      uni.navigateTo({
+        url: '/pages/alumni/card/card'
+      })
     },
     navigateToProfile() {
       uni.navigateTo({
@@ -897,35 +966,17 @@ export default {
   }
 }
 
-.radio-group {
+.radio-label {
   display: flex;
   flex-direction: row;
+  align-items: center;
+  margin-bottom: 20rpx;
+  font-size: 28rpx;
+  color: #333;
 }
 
-.radio-item {
-  flex: 1;
-  height: 72rpx;
-  line-height: 72rpx;
-  text-align: center;
-  font-size: 28rpx;
-  color: #666;
-  background-color: #f5f5f5;
-  border: 2rpx solid #e0e0e0;
-
-  &:first-child {
-    border-radius: 12rpx 0 0 12rpx;
-    border-right: none;
-  }
-
-  &:last-child {
-    border-radius: 0 12rpx 12rpx 0;
-  }
-
-  &.active {
-    color: var(--primary-color);
-    background-color: rgba(43, 92, 230, 0.08);
-    border-color: var(--primary-color);
-  }
+.radio-label text {
+  margin-left: 12rpx;
 }
 
 .form-label {
@@ -1110,6 +1161,22 @@ export default {
   font-size: 26rpx;
   color: #666;
   display: block;
+}
+
+.verified-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.card-btn {
+  height: 80rpx;
+  line-height: 80rpx;
+  background-color: var(--primary-color, #2B5CE6);
+  color: #fff;
+  font-size: 30rpx;
+  border-radius: 40rpx;
+  border: none;
 }
 
 .edit-btn {
