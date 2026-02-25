@@ -306,6 +306,7 @@ module.exports = {
 
     const {
       realName,
+      gender,
       educations,
       proofUrls,
       workInfo,
@@ -363,11 +364,12 @@ module.exports = {
     // 更新用户信息
     const updateData = {
       realName,
+      gender,
       educations,
       workInfo,
       city,
       cardPhotoUrl,
-      alumniStatus: 0 // 待认证
+      alumniStatus: 0
     }
 
     // 添加可选字段
@@ -558,16 +560,20 @@ module.exports = {
 
         await userCollection.doc(toUserId).update(updateFields)
 
-        // 记录审计日志
-        await db.collection('alumni-verify-logs').add({
-          userId: toUserId,
-          method: 'recommend',
-          recommendCount: newRecommendRes.total,
-          requiredCount,
-          lastRecommenderId: this.uid,
-          result: 'approved',
-          createTime: now
-        })
+        // 记录审计日志（容错，不影响主流程）
+        try {
+          await db.collection('alumni-verify-logs').add({
+            userId: toUserId,
+            method: 'recommend',
+            recommendCount: newRecommendRes.total,
+            requiredCount,
+            lastRecommenderId: this.uid,
+            result: 'approved',
+            createTime: now
+          })
+        } catch (e) {
+          console.warn('写入审计日志失败', e.message)
+        }
       }
     }
 
@@ -622,9 +628,7 @@ module.exports = {
    * @returns {Promise<Object>} 学校配置
    */
   async getSchoolConfig() {
-    const configRes = await db.collection('alumni-school-config')
-      .doc('school_config')
-      .get()
+    const configRes = await db.collection('alumni-school-config').limit(1).get()
 
     if (!configRes.data || configRes.data.length === 0) {
       // 返回默认配置
@@ -633,11 +637,13 @@ module.exports = {
         data: {
           name: '校友会',
           type: 'university',
+          localDegrees: ['bachelor', 'master', 'doctor'],
+          colleges: [],
           features: {
-            enableDonation: false,
-            enableMap: true,
+            enableVerification: true,
+            enableFriendship: true,
+            enableChat: true,
             enableActivity: true,
-            enableOrganization: true,
             enableRecommendVerify: false,
             recommendCount: 3,
             requireProof: false
@@ -660,15 +666,19 @@ module.exports = {
     checkLogin(this.uid)
 
     const userCollection = db.collection('uni-id-users')
-    const res = await userCollection.doc(this.uid).field({
-      _id: 1,
-      avatar: 1,
-      realName: 1,
-      alumniStatus: 1,
-      alumniCardNo: 1,
-      alumniVerifyTime: 1,
-      educations: 1
-    }).get()
+    const [res, configRes2] = await Promise.all([
+      userCollection.doc(this.uid).field({
+        _id: 1,
+        avatar: 1,
+        realName: 1,
+        alumniStatus: 1,
+        alumniCardNo: 1,
+        alumniVerifyTime: 1,
+        educations: 1,
+        cardPhotoUrl: 1
+      }).get(),
+      db.collection('alumni-school-config').limit(1).get()
+    ])
 
     if (!res.data || res.data.length === 0) {
       throw {
@@ -686,11 +696,6 @@ module.exports = {
       }
     }
 
-    // 获取学校配置
-    const configRes2 = await db.collection('alumni-school-config')
-      .doc('school_config')
-      .get()
-
     const schoolConfig = configRes2.data?.[0] || { name: '校友会' }
 
     // 获取主要学历
@@ -701,8 +706,10 @@ module.exports = {
       data: {
         schoolName: schoolConfig.name,
         schoolLogo: schoolConfig.logo,
+        branding: schoolConfig.branding || {},
         realName: user.realName,
         avatar: user.avatar,
+        cardPhotoUrl: user.cardPhotoUrl,
         alumniCardNo: user.alumniCardNo,
         graduationYear: primaryEdu?.graduationYear,
         enrollmentYear: primaryEdu?.enrollmentYear,
