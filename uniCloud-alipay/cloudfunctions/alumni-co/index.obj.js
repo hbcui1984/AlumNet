@@ -71,24 +71,48 @@ function checkLogin(uid) {
   }
 }
 
+// 学历等级权重，用于排序（值越大学历越高）
+const DEGREE_WEIGHT = {
+  doctor: 4,
+  master: 3,
+  bachelor: 2,
+  highschool: 1,
+  middleschool: 0
+}
+
+/**
+ * 将本校学历按学历高低排序（博士>硕士>本科>高中>初中）
+ * @param {Education[]} educations
+ * @returns {Education[]}
+ */
+function sortLocalEducations(educations) {
+  return [...educations].sort((a, b) => (DEGREE_WEIGHT[b.degree] || 0) - (DEGREE_WEIGHT[a.degree] || 0))
+}
+
 /**
  * 验证教育经历数据
- * @param {Education[]} educations
+ * @param {Education[]} educations - 完整教育经历数组（含本校和其他学校）
  * @param {string} schoolType - 学校类型：university, highschool, middleschool
+ * @param {string[]} localDegrees - 本校提供的学历类型
  */
-function validateEducations(educations, schoolType = 'university') {
+function validateEducations(educations, schoolType = 'university', localDegrees = []) {
   if (!Array.isArray(educations) || educations.length === 0) {
-    throw {
-      errCode: 'INVALID_PARAM',
-      errMsg: '教育经历不能为空'
-    }
+    throw { errCode: 'INVALID_PARAM', errMsg: '教育经历不能为空' }
   }
 
-  if (educations.length > 5) {
-    throw {
-      errCode: 'INVALID_PARAM',
-      errMsg: '教育经历最多5条'
-    }
+  const localEds = educations.filter(e => e.isLocal)
+  const otherEds = educations.filter(e => !e.isLocal)
+
+  // 本校学历：至少1条，最多3条
+  if (localEds.length === 0) {
+    throw { errCode: 'INVALID_PARAM', errMsg: '请至少填写一条本校学历' }
+  }
+  if (localEds.length > 3) {
+    throw { errCode: 'INVALID_PARAM', errMsg: '本校学历最多3条' }
+  }
+  // 其他学历：最多3条
+  if (otherEds.length > 3) {
+    throw { errCode: 'INVALID_PARAM', errMsg: '其他学历最多3条' }
   }
 
   const validDegrees = ['bachelor', 'master', 'doctor', 'highschool', 'middleschool']
@@ -96,49 +120,25 @@ function validateEducations(educations, schoolType = 'university') {
 
   for (const edu of educations) {
     if (!edu.degree || !validDegrees.includes(edu.degree)) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '学历类型无效'
-      }
+      throw { errCode: 'INVALID_PARAM', errMsg: '学历类型无效' }
     }
-
     if (!edu.enrollmentYear || edu.enrollmentYear < 1900 || edu.enrollmentYear > currentYear) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '入学年份无效'
-      }
+      throw { errCode: 'INVALID_PARAM', errMsg: '入学年份无效' }
     }
-
     if (edu.graduationYear && edu.graduationYear < edu.enrollmentYear) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '毕业年份不能早于入学年份'
-      }
+      throw { errCode: 'INVALID_PARAM', errMsg: '毕业年份不能早于入学年份' }
     }
-
-    // 高中/初中校友会需要填写班主任
-    if (schoolType !== 'university' && !edu.headTeacher) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '请填写班主任姓名'
-      }
-    }
-
-    // 高中校友会需要填写初中毕业学校
-    if (schoolType === 'highschool' && !edu.middleSchool) {
-      throw {
-        errCode: 'INVALID_PARAM',
-        errMsg: '请填写初中毕业学校'
-      }
+    // 非本校学历必须填写学校名称
+    if (!edu.isLocal && !edu.schoolName) {
+      throw { errCode: 'INVALID_PARAM', errMsg: '请填写学校名称' }
     }
   }
 
-  // 确保只有一个主要学历
-  const primaryCount = educations.filter(e => e.isPrimary).length
-  if (primaryCount > 1) {
-    throw {
-      errCode: 'INVALID_PARAM',
-      errMsg: '只能有一个主要学历'
+  // 本校学历的特殊校验
+  for (const edu of localEds) {
+    // 高中/初中校友会：班主任必填
+    if (schoolType !== 'university' && !edu.headTeacher) {
+      throw { errCode: 'INVALID_PARAM', errMsg: '请填写班主任姓名' }
     }
   }
 }
@@ -346,7 +346,12 @@ module.exports = {
       }
     }
 
-    validateEducations(educations, schoolType)
+    // 获取学校配置（用于验证）
+    const configRes = await db.collection('alumni-school-config').limit(1).get()
+    const schoolConfig = configRes.data?.[0] || {}
+    const localDegrees = schoolConfig.localDegrees || []
+
+    validateEducations(educations, schoolType, localDegrees)
 
     // 检查当前认证状态
     const userCollection = db.collection('uni-id-users')
@@ -361,11 +366,16 @@ module.exports = {
       }
     }
 
+    // 本校学历按学历高低排序，其他学历追加在后
+    const localEds = sortLocalEducations(educations.filter(e => e.isLocal))
+    const otherEds = educations.filter(e => !e.isLocal)
+    const sortedEducations = [...localEds, ...otherEds]
+
     // 更新用户信息
     const updateData = {
       realName,
       gender,
-      educations,
+      educations: sortedEducations,
       workInfo,
       city,
       cardPhotoUrl,
