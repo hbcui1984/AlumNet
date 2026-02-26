@@ -45,7 +45,7 @@
       <!-- 性别 -->
       <view class="form-item">
         <text class="form-label required">性别</text>
-        <radio-group @change="e => formData.gender = parseInt(e.detail.value)">
+        <radio-group class="radio-group-row" @change="e => formData.gender = parseInt(e.detail.value)">
           <label class="radio-label">
             <radio value="1" :checked="formData.gender === 1" color="var(--primary-color)" />
             <text>男</text>
@@ -57,67 +57,45 @@
         </radio-group>
       </view>
 
-      <!-- 教育经历 -->
+      <!-- 本校学历（必填） -->
       <view class="education-section">
         <view class="education-header">
-          <text class="form-label required">教育经历</text>
-          <view v-if="formData.educations.length < 5" class="add-btn" @click="addEducation">
+          <view>
+            <text class="form-label required">本校学历</text>
+            <text class="edu-section-hint">{{ schoolConfig.name || '本校' }}的就读经历</text>
+          </view>
+          <view v-if="formData.localEducations.length < 3" class="add-btn" @click="addLocalEducation">
             <uni-icons type="plusempty" size="16" color="var(--primary-color)"></uni-icons>
             <text class="add-text">添加</text>
           </view>
         </view>
 
         <view
-          v-for="(edu, index) in formData.educations"
-          :key="index"
-          class="education-card"
+          v-for="(edu, index) in formData.localEducations"
+          :key="'local_' + index"
+          class="education-card local-card"
         >
           <view class="edu-header">
-            <text class="edu-index">学历 {{ index + 1 }}</text>
-            <view v-if="formData.educations.length > 1" class="delete-btn" @click="removeEducation(index)">
+            <text class="edu-index">{{ getDegreeLabel(edu.degree) || '本校学历 ' + (index + 1) }}</text>
+            <view v-if="formData.localEducations.length > 1" class="delete-btn" @click="removeLocalEducation(index)">
               <uni-icons type="trash" size="18" color="#999"></uni-icons>
             </view>
           </view>
 
-          <!-- 学历类型 -->
-          <view class="form-item">
-            <text class="form-label required">学历类型</text>
+          <!-- 大学类型：需要选择学历层次 -->
+          <view v-if="isUniversityType" class="form-item">
+            <text class="form-label required">学历层次</text>
             <picker
-              :value="getDegreeIndex(edu.degree)"
-              :range="degreeOptions"
+              :value="getLocalDegreeIndex(edu.degree)"
+              :range="localDegreeOptions"
               range-key="label"
-              @change="onDegreeChange($event, index)"
+              @change="onLocalDegreeChange($event, index)"
             >
               <view class="picker-value">
-                {{ getDegreeLabel(edu.degree) || '请选择学历类型' }}
+                {{ getDegreeLabel(edu.degree) || '请选择学历层次' }}
                 <uni-icons type="arrowright" size="14" color="#999"></uni-icons>
               </view>
             </picker>
-          </view>
-
-          <!-- 是否本校（根据学历类型自动判断是否显示） -->
-          <view v-if="isLocalDegree(edu.degree)" class="form-item">
-            <text class="form-label">就读学校</text>
-            <radio-group @change="onSchoolTypeChange($event, index)">
-              <label class="radio-label">
-                <radio :value="true" :checked="edu.isLocal !== false" color="var(--primary-color)" />
-                <text>{{ schoolConfig.name || '本校' }}</text>
-              </label>
-              <label class="radio-label">
-                <radio :value="false" :checked="edu.isLocal === false" color="var(--primary-color)" />
-                <text>其他学校</text>
-              </label>
-            </radio-group>
-          </view>
-
-          <!-- 学校名称（非本校学历类型 或 选了其他学校） -->
-          <view v-if="(!isLocalDegree(edu.degree) && isUniversityDegree(edu.degree)) || (isLocalDegree(edu.degree) && edu.isLocal === false)" class="form-item">
-            <text class="form-label required">学校名称</text>
-            <input
-              class="form-input"
-              v-model="edu.schoolName"
-              placeholder="请输入学校名称"
-            />
           </view>
 
           <!-- 入学年份 -->
@@ -127,7 +105,7 @@
               mode="selector"
               :value="getYearIndex(edu.enrollmentYear)"
               :range="yearOptions"
-              @change="onEnrollmentYearChange($event, index)"
+              @change="onLocalEnrollmentYearChange($event, index)"
             >
               <view class="picker-value">
                 {{ edu.enrollmentYear || '请选择入学年份' }}
@@ -143,7 +121,7 @@
               mode="selector"
               :value="getYearIndex(edu.graduationYear)"
               :range="yearOptions"
-              @change="onGraduationYearChange($event, index)"
+              @change="onLocalGraduationYearChange($event, index)"
             >
               <view class="picker-value">
                 {{ edu.graduationYear || '请选择毕业年份（可选）' }}
@@ -152,105 +130,158 @@
             </picker>
           </view>
 
-          <!-- 学院（本校大学学历用picker） -->
-          <view v-if="isUniversityDegree(edu.degree)" class="form-item">
+          <!-- 学院（大学类型） -->
+          <view v-if="isUniversityType" class="form-item">
             <text class="form-label">学院</text>
             <picker
-              v-if="edu.isLocal !== false && collegeOptions.length > 0"
+              v-if="collegeOptions.length > 0"
               :value="getCollegeIndex(edu.college)"
               :range="collegeOptions"
               range-key="name"
-              @change="onCollegeChange($event, index)"
+              @change="onLocalCollegeChange($event, index)"
             >
               <view class="picker-value">
                 {{ edu.college || '请选择学院' }}
                 <uni-icons type="arrowright" size="14" color="#999"></uni-icons>
               </view>
             </picker>
-            <input
-              v-else
-              class="form-input"
-              v-model="edu.college"
-              placeholder="请输入学院"
-            />
+            <input v-else class="form-input" v-model="edu.college" placeholder="请输入学院" />
           </view>
 
-          <!-- 专业（本校大学学历用picker） -->
-          <view v-if="isUniversityDegree(edu.degree)" class="form-item">
+          <!-- 专业（大学类型） -->
+          <view v-if="isUniversityType" class="form-item">
             <text class="form-label">专业</text>
             <picker
-              v-if="edu.isLocal !== false && getMajorOptions(edu.college).length > 0"
+              v-if="getMajorOptions(edu.college).length > 0"
               :value="getMajorIndex(edu.college, edu.major)"
               :range="getMajorOptions(edu.college)"
-              @change="onMajorChange($event, index)"
+              @change="onLocalMajorChange($event, index)"
             >
               <view class="picker-value">
                 {{ edu.major || '请选择专业' }}
                 <uni-icons type="arrowright" size="14" color="#999"></uni-icons>
               </view>
             </picker>
-            <input
-              v-else
-              class="form-input"
-              v-model="edu.major"
-              placeholder="请输入专业"
-            />
+            <input v-else class="form-input" v-model="edu.major" placeholder="请输入专业" />
           </view>
 
           <!-- 班级 -->
           <view class="form-item">
             <text class="form-label">班级</text>
-            <input
-              class="form-input"
-              v-model="edu.className"
-              placeholder="请输入班级（可选）"
-            />
+            <input class="form-input" v-model="edu.className" placeholder="请输入班级（可选）" />
           </view>
 
           <!-- 班主任（高中/初中校友会） -->
           <view v-if="!isUniversityType" class="form-item">
             <text class="form-label required">班主任</text>
-            <input
-              class="form-input"
-              v-model="edu.headTeacher"
-              placeholder="请输入班主任姓名"
-            />
-          </view>
-
-          <!-- 初中毕业学校（仅高中校友会） -->
-          <view v-if="isHighSchoolType" class="form-item">
-            <text class="form-label required">初中毕业学校</text>
-            <input
-              class="form-input"
-              v-model="edu.middleSchool"
-              placeholder="请输入初中毕业学校"
-            />
+            <input class="form-input" v-model="edu.headTeacher" placeholder="请输入班主任姓名" />
           </view>
 
           <!-- 任课老师（高中/初中校友会） -->
           <view v-if="!isUniversityType" class="form-item">
             <text class="form-label">任课老师</text>
-            <input
-              class="form-input"
-              v-model="edu.teachers"
-              placeholder="请输入任意任课老师（可选）"
-            />
+            <input class="form-input" v-model="edu.teachers" placeholder="请输入任意任课老师（可选）" />
           </view>
 
           <!-- 学号 -->
           <view class="form-item">
             <text class="form-label">学号</text>
-            <input
-              class="form-input"
-              v-model="edu.studentId"
-              placeholder="请输入学号（可选）"
-            />
+            <input class="form-input" v-model="edu.studentId" placeholder="请输入学号（可选）" />
+          </view>
+        </view>
+      </view>
+
+      <!-- 其他学历（选填） -->
+      <view class="education-section mt-section">
+        <view class="education-header">
+          <view>
+            <text class="form-label">其他学历</text>
+            <text class="edu-section-hint">非本校的学习经历（选填）</text>
+          </view>
+          <view v-if="formData.otherEducations.length < 3" class="add-btn" @click="addOtherEducation">
+            <uni-icons type="plusempty" size="16" color="var(--primary-color)"></uni-icons>
+            <text class="add-text">添加</text>
+          </view>
+        </view>
+
+        <view v-if="formData.otherEducations.length === 0" class="edu-empty">
+          <text class="edu-empty-text">暂无其他学历，可点击右上角添加</text>
+        </view>
+
+        <view
+          v-for="(edu, index) in formData.otherEducations"
+          :key="'other_' + index"
+          class="education-card"
+        >
+          <view class="edu-header">
+            <text class="edu-index">其他学历 {{ index + 1 }}</text>
+            <view class="delete-btn" @click="removeOtherEducation(index)">
+              <uni-icons type="trash" size="18" color="#999"></uni-icons>
+            </view>
           </view>
 
-          <!-- 设为主要学历 -->
-          <view v-if="formData.educations.length > 1" class="form-item row">
-            <text class="form-label">设为主要学历</text>
-            <switch :checked="edu.isPrimary" @change="onPrimaryChange($event, index)" />
+          <!-- 学历类型 -->
+          <view class="form-item">
+            <text class="form-label required">学历类型</text>
+            <picker
+              :value="getDegreeIndex(edu.degree)"
+              :range="allDegreeOptions"
+              range-key="label"
+              @change="onOtherDegreeChange($event, index)"
+            >
+              <view class="picker-value">
+                {{ getDegreeLabel(edu.degree) || '请选择学历类型' }}
+                <uni-icons type="arrowright" size="14" color="#999"></uni-icons>
+              </view>
+            </picker>
+          </view>
+
+          <!-- 学校名称（必填） -->
+          <view class="form-item">
+            <text class="form-label required">学校名称</text>
+            <input class="form-input" v-model="edu.schoolName" placeholder="请输入学校名称" />
+          </view>
+
+          <!-- 入学年份 -->
+          <view class="form-item">
+            <text class="form-label required">入学年份</text>
+            <picker
+              mode="selector"
+              :value="getYearIndex(edu.enrollmentYear)"
+              :range="yearOptions"
+              @change="onOtherEnrollmentYearChange($event, index)"
+            >
+              <view class="picker-value">
+                {{ edu.enrollmentYear || '请选择入学年份' }}
+                <uni-icons type="arrowright" size="14" color="#999"></uni-icons>
+              </view>
+            </picker>
+          </view>
+
+          <!-- 毕业年份 -->
+          <view class="form-item">
+            <text class="form-label">毕业年份</text>
+            <picker
+              mode="selector"
+              :value="getYearIndex(edu.graduationYear)"
+              :range="yearOptions"
+              @change="onOtherGraduationYearChange($event, index)"
+            >
+              <view class="picker-value">
+                {{ edu.graduationYear || '请选择毕业年份（可选）' }}
+                <uni-icons type="arrowright" size="14" color="#999"></uni-icons>
+              </view>
+            </picker>
+          </view>
+
+          <!-- 学院/专业 -->
+          <view class="form-item">
+            <text class="form-label">学院</text>
+            <input class="form-input" v-model="edu.college" placeholder="请输入学院（可选）" />
+          </view>
+          <view class="form-item">
+            <text class="form-label">专业</text>
+            <input class="form-input" v-model="edu.major" placeholder="请输入专业（可选）" />
           </view>
         </view>
       </view>
@@ -388,11 +419,10 @@ export default {
         city: '',
         cardPhoto: [],
         diplomaPhoto: [],
-        educations: [
+        localEducations: [
           {
             degree: '',
             isLocal: true,
-            schoolName: '',
             enrollmentYear: null,
             graduationYear: null,
             college: '',
@@ -401,13 +431,13 @@ export default {
             headTeacher: '',
             middleSchool: '',
             teachers: '',
-            studentId: '',
-            isPrimary: true
+            studentId: ''
           }
         ],
+        otherEducations: [],
         proofFiles: []
       },
-      degreeOptions: [
+      allDegreeOptions: [
         { value: 'bachelor', label: '本科' },
         { value: 'master', label: '硕士' },
         { value: 'doctor', label: '博士' },
@@ -468,17 +498,28 @@ export default {
     schoolType() {
       return this.schoolConfig.type || 'university'
     },
-    // 是否为大学类型
+    // 是否为大学类型（本校学历包含大学学历）
     isUniversityType() {
-      return this.schoolType === 'university'
+      const localDegrees = this.schoolConfig.localDegrees || []
+      if (localDegrees.length === 0) return this.schoolType === 'university'
+      return localDegrees.some(d => ['bachelor', 'master', 'doctor'].includes(d))
     },
     // 是否为高中类型
     isHighSchoolType() {
-      return this.schoolType === 'highschool'
+      const localDegrees = this.schoolConfig.localDegrees || []
+      if (localDegrees.length === 0) return this.schoolType === 'highschool'
+      return localDegrees.includes('highschool') && !localDegrees.some(d => ['bachelor', 'master', 'doctor'].includes(d))
     },
     // 是否为初中类型
     isMiddleSchoolType() {
-      return this.schoolType === 'middleschool'
+      const localDegrees = this.schoolConfig.localDegrees || []
+      if (localDegrees.length === 0) return this.schoolType === 'middleschool'
+      return localDegrees.includes('middleschool') && !localDegrees.some(d => ['bachelor', 'master', 'doctor'].includes(d))
+    },
+    // 本校可选的学历层次（大学类型才需要选）
+    localDegreeOptions() {
+      const localDegrees = this.schoolConfig.localDegrees || ['bachelor', 'master', 'doctor']
+      return this.allDegreeOptions.filter(d => localDegrees.includes(d.value))
     }
   },
   onLoad() {
@@ -511,39 +552,55 @@ export default {
           this.requiredRecommendCount = statusRes.data.requiredRecommendCount || 3
         }
 
-        // 用户资料
-        if (profileRes.errCode === 0) {
-          this.userProfile = profileRes.data
-          // 如果有已填写的信息，预填表单
-          if (profileRes.data.realName) {
-            this.formData.realName = profileRes.data.realName
-          }
-          if (profileRes.data.educations && profileRes.data.educations.length > 0) {
-            this.formData.educations = profileRes.data.educations.map(edu => ({
-              ...edu,
-              isPrimary: edu.isPrimary || false
-            }))
-          }
-        }
-
-        // 学校配置
+        // 学校配置（先加载，因为后面预填表单需要用到 schoolType）
         if (configRes.errCode === 0) {
           this.schoolConfig = configRes.data
           const features = configRes.data.features || {}
           this.enableRecommendVerify = features.enableRecommendVerify || false
           this.requireProof = features.requireProof || false
           this.requiredRecommendCount = features.recommendCount || 3
-
-          // 加载学院配置
           if (configRes.data.colleges) {
             this.collegeOptions = configRes.data.colleges
           }
+          // 非大学类型：初始本校学历自动设置 degree
+          if (configRes.data.type && configRes.data.type !== 'university') {
+            this.formData.localEducations[0].degree = configRes.data.type
+          }
+          // 大学类型但只有一个学历选项时，也自动选中
+          if (configRes.data.type === 'university') {
+            const localDegrees = configRes.data.localDegrees || []
+            if (localDegrees.length === 1) {
+              this.formData.localEducations.forEach(edu => {
+                if (!edu.degree) edu.degree = localDegrees[0]
+              })
+            }
+          }
+        }
 
-          // 根据学校类型过滤学历选项
-          if (configRes.data.type === 'highschool') {
-            this.degreeOptions = [{ value: 'highschool', label: '高中' }]
-          } else if (configRes.data.type === 'middleschool') {
-            this.degreeOptions = [{ value: 'middleschool', label: '初中' }]
+        // 用户资料
+        if (profileRes.errCode === 0) {
+          this.userProfile = profileRes.data
+          if (profileRes.data.realName) {
+            this.formData.realName = profileRes.data.realName
+          }
+          if (profileRes.data.gender) {
+            this.formData.gender = profileRes.data.gender
+          }
+          if (profileRes.data.workInfo) {
+            this.formData.workInfo = profileRes.data.workInfo
+          }
+          if (profileRes.data.city) {
+            this.formData.city = profileRes.data.city
+          }
+          if (profileRes.data.educations && profileRes.data.educations.length > 0) {
+            const localEds = profileRes.data.educations.filter(e => e.isLocal !== false)
+            const otherEds = profileRes.data.educations.filter(e => e.isLocal === false)
+            if (localEds.length > 0) {
+              this.formData.localEducations = localEds
+            }
+            if (otherEds.length > 0) {
+              this.formData.otherEducations = otherEds
+            }
           }
         }
       } catch (e) {
@@ -555,10 +612,13 @@ export default {
       }
     },
     getDegreeIndex(degree) {
-      return this.degreeOptions.findIndex(d => d.value === degree)
+      return this.allDegreeOptions.findIndex(d => d.value === degree)
+    },
+    getLocalDegreeIndex(degree) {
+      return this.localDegreeOptions.findIndex(d => d.value === degree)
     },
     getDegreeLabel(degree) {
-      const option = this.degreeOptions.find(d => d.value === degree)
+      const option = this.allDegreeOptions.find(d => d.value === degree)
       return option ? option.label : ''
     },
     getYearIndex(year) {
@@ -575,73 +635,19 @@ export default {
       const majors = this.getMajorOptions(college)
       return majors.indexOf(major)
     },
-    isUniversityDegree(degree) {
-      return ['bachelor', 'master', 'doctor'].includes(degree)
-    },
-    // 判断该学历是否为本校提供的学历类型
-    isLocalDegree(degree) {
-      const localDegrees = this.schoolConfig.localDegrees || []
-      return localDegrees.includes(degree)
-    },
-    onSchoolTypeChange(e, index) {
-      const value = e.detail?.value ?? e
-      // radio value 在小程序里是字符串，需要处理
-      this.formData.educations[index].isLocal = value === true || value === 'true'
-      // 切换为本校时清空学校名称
-      if (this.formData.educations[index].isLocal) {
-        this.formData.educations[index].schoolName = ''
-      }
-    },
-    onDegreeChange(e, index) {
-      const degreeIndex = e.detail?.value ?? e
-      const degree = this.degreeOptions[degreeIndex].value
-      this.formData.educations[index].degree = degree
-      // 如果选了非本校学历类型（不在 localDegrees 里），自动将 isLocal 设为 false
-      const localDegrees = this.schoolConfig.localDegrees || []
-      if (!localDegrees.includes(degree)) {
-        this.formData.educations[index].isLocal = false
-      } else {
-        // 切回本校学历类型时，重置为本校并清空学校名称
-        this.formData.educations[index].isLocal = true
-        this.formData.educations[index].schoolName = ''
-      }
-    },
-    onEnrollmentYearChange(e, index) {
-      const val = e.detail?.value ?? e
-      this.formData.educations[index].enrollmentYear = this.yearOptions[val]
-    },
-    onGraduationYearChange(e, index) {
-      const val = e.detail?.value ?? e
-      this.formData.educations[index].graduationYear = this.yearOptions[val]
-    },
-    onCollegeChange(e, index) {
-      const val = e.detail?.value ?? e
-      const college = this.collegeOptions[val]
-      this.formData.educations[index].college = college.name
-      this.formData.educations[index].major = ''
-    },
-    onMajorChange(e, index) {
-      const val = e.detail?.value ?? e
-      const edu = this.formData.educations[index]
-      const majors = this.getMajorOptions(edu.college)
-      edu.major = majors[val]
-    },
-    onPrimaryChange(e, index) {
-      // 只能有一个主要学历
-      const checked = e.detail?.value ?? e
-      this.formData.educations.forEach((edu, i) => {
-        edu.isPrimary = i === index && checked
-      })
-    },
-    addEducation() {
-      if (this.formData.educations.length >= 5) {
-        uni.showToast({ title: '最多添加5条教育经历', icon: 'none' })
+    // 本校学历操作
+    addLocalEducation() {
+      if (this.formData.localEducations.length >= 3) {
+        uni.showToast({ title: '本校学历最多3条', icon: 'none' })
         return
       }
-      this.formData.educations.push({
-        degree: '',
+      const localDegrees = this.schoolConfig.localDegrees || []
+      const defaultDegree = this.isUniversityType
+        ? (localDegrees.length === 1 ? localDegrees[0] : '')
+        : this.schoolType
+      this.formData.localEducations.push({
+        degree: defaultDegree,
         isLocal: true,
-        schoolName: '',
         enrollmentYear: null,
         graduationYear: null,
         college: '',
@@ -650,16 +656,65 @@ export default {
         headTeacher: '',
         middleSchool: '',
         teachers: '',
-        studentId: '',
-        isPrimary: false
+        studentId: ''
       })
     },
-    removeEducation(index) {
-      const removed = this.formData.educations.splice(index, 1)[0]
-      // 如果删除的是主要学历，将第一条设为主要
-      if (removed.isPrimary && this.formData.educations.length > 0) {
-        this.formData.educations[0].isPrimary = true
+    removeLocalEducation(index) {
+      this.formData.localEducations.splice(index, 1)
+    },
+    onLocalDegreeChange(e, index) {
+      const val = e.detail?.value ?? e
+      this.formData.localEducations[index].degree = this.localDegreeOptions[val].value
+    },
+    onLocalEnrollmentYearChange(e, index) {
+      const val = e.detail?.value ?? e
+      this.formData.localEducations[index].enrollmentYear = this.yearOptions[val]
+    },
+    onLocalGraduationYearChange(e, index) {
+      const val = e.detail?.value ?? e
+      this.formData.localEducations[index].graduationYear = this.yearOptions[val]
+    },
+    onLocalCollegeChange(e, index) {
+      const val = e.detail?.value ?? e
+      this.formData.localEducations[index].college = this.collegeOptions[val].name
+      this.formData.localEducations[index].major = ''
+    },
+    onLocalMajorChange(e, index) {
+      const val = e.detail?.value ?? e
+      const edu = this.formData.localEducations[index]
+      const majors = this.getMajorOptions(edu.college)
+      edu.major = majors[val]
+    },
+    // 其他学历操作
+    addOtherEducation() {
+      if (this.formData.otherEducations.length >= 3) {
+        uni.showToast({ title: '其他学历最多3条', icon: 'none' })
+        return
       }
+      this.formData.otherEducations.push({
+        degree: '',
+        isLocal: false,
+        schoolName: '',
+        enrollmentYear: null,
+        graduationYear: null,
+        college: '',
+        major: ''
+      })
+    },
+    removeOtherEducation(index) {
+      this.formData.otherEducations.splice(index, 1)
+    },
+    onOtherDegreeChange(e, index) {
+      const val = e.detail?.value ?? e
+      this.formData.otherEducations[index].degree = this.allDegreeOptions[val].value
+    },
+    onOtherEnrollmentYearChange(e, index) {
+      const val = e.detail?.value ?? e
+      this.formData.otherEducations[index].enrollmentYear = this.yearOptions[val]
+    },
+    onOtherGraduationYearChange(e, index) {
+      const val = e.detail?.value ?? e
+      this.formData.otherEducations[index].graduationYear = this.yearOptions[val]
     },
     onProofSelect(e) {
       console.log('选择证明材料', e)
@@ -695,28 +750,34 @@ export default {
         return false
       }
 
-      for (const edu of this.formData.educations) {
-        if (!edu.degree) {
-          uni.showToast({ title: '请选择学历类型', icon: 'none' })
+      // 验证本校学历
+      for (const edu of this.formData.localEducations) {
+        if (this.isUniversityType && !edu.degree) {
+          uni.showToast({ title: '请选择学历层次', icon: 'none' })
           return false
         }
         if (!edu.enrollmentYear) {
           uni.showToast({ title: '请选择入学年份', icon: 'none' })
           return false
         }
-        // 非本校的大学学历需要填写学校名称
-        if (this.isUniversityDegree(edu.degree) && edu.isLocal === false && !edu.schoolName) {
-          uni.showToast({ title: '请输入学校名称', icon: 'none' })
-          return false
-        }
-        // 高中/初中校友会需要填写班主任
         if (!this.isUniversityType && !edu.headTeacher) {
           uni.showToast({ title: '请输入班主任姓名', icon: 'none' })
           return false
         }
-        // 高中校友会需要填写初中毕业学校
-        if (this.isHighSchoolType && !edu.middleSchool) {
-          uni.showToast({ title: '请输入初中毕业学校', icon: 'none' })
+      }
+
+      // 验证其他学历
+      for (const edu of this.formData.otherEducations) {
+        if (!edu.degree) {
+          uni.showToast({ title: '请选择其他学历的学历类型', icon: 'none' })
+          return false
+        }
+        if (!edu.schoolName) {
+          uni.showToast({ title: '请输入其他学历的学校名称', icon: 'none' })
+          return false
+        }
+        if (!edu.enrollmentYear) {
+          uni.showToast({ title: '请选择其他学历的入学年份', icon: 'none' })
           return false
         }
       }
@@ -803,6 +864,15 @@ export default {
           }
         }
 
+        // 合并本校学历和其他学历，本校学历标记 isLocal=true
+        const localEds = this.formData.localEducations.map(e => ({ ...e, isLocal: true }))
+        // 非大学类型自动设置 degree
+        if (!this.isUniversityType) {
+          localEds.forEach(e => { e.degree = this.schoolType })
+        }
+        const otherEds = this.formData.otherEducations.map(e => ({ ...e, isLocal: false }))
+        const educations = [...localEds, ...otherEds]
+
         const res = await alumniCo.submitVerification({
           realName: this.formData.realName,
           gender: this.formData.gender,
@@ -811,7 +881,7 @@ export default {
           city: this.formData.city,
           cardPhotoUrl,
           diplomaUrls,
-          educations: this.formData.educations,
+          educations,
           proofUrls,
           schoolType: this.schoolType
         })
@@ -966,11 +1036,17 @@ export default {
   }
 }
 
+.radio-group-row {
+  display: flex;
+  flex-direction: row;
+}
+
 .radio-label {
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-bottom: 20rpx;
+  margin-bottom: 0;
+  margin-right: 40rpx;
   font-size: 28rpx;
   color: #333;
 }
@@ -1187,5 +1263,29 @@ export default {
   font-size: 30rpx;
   border: 2rpx solid var(--primary-color);
   border-radius: 40rpx;
+}
+
+.local-card {
+  border-left: 4rpx solid var(--primary-color, #2B5CE6);
+}
+
+.edu-section-hint {
+  font-size: 24rpx;
+  color: #999;
+  margin-left: 12rpx;
+}
+
+.mt-section {
+  margin-top: 30rpx;
+}
+
+.edu-empty {
+  padding: 30rpx 0;
+  text-align: center;
+}
+
+.edu-empty-text {
+  font-size: 26rpx;
+  color: #bbb;
 }
 </style>
