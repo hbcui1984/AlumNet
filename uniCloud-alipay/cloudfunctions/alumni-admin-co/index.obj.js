@@ -281,6 +281,7 @@ module.exports = {
         idCard: user.idCard,
         status: user.alumniStatus ?? -1,
         schoolName,
+        educations: user.educations || [],
         education: primaryEdu || null,
         classTeacher: user.classTeacher,
         middleSchool: user.middleSchool,
