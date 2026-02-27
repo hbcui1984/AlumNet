@@ -309,7 +309,10 @@ module.exports = {
       gender,
       educations,
       proofUrls,
-      workInfo,
+      employmentStatus,
+      company,
+      position,
+      occupationDesc,
       message,
       city,
       cardPhotoUrl,
@@ -325,10 +328,20 @@ module.exports = {
       }
     }
 
-    if (!workInfo) {
+    const validEmploymentStatus = ['employed', 'freelance', 'retired', 'student']
+    if (!employmentStatus || !validEmploymentStatus.includes(employmentStatus)) {
       throw {
         errCode: 'INVALID_PARAM',
-        errMsg: '请填写现工作单位及职务'
+        errMsg: '请选择就业状态'
+      }
+    }
+
+    if (employmentStatus === 'employed') {
+      if (!company) {
+        throw { errCode: 'INVALID_PARAM', errMsg: '请填写工作单位' }
+      }
+      if (!position) {
+        throw { errCode: 'INVALID_PARAM', errMsg: '请填写职位' }
       }
     }
 
@@ -376,13 +389,16 @@ module.exports = {
       realName,
       gender,
       educations: sortedEducations,
-      workInfo,
+      employmentStatus,
+      currentCompany: employmentStatus === 'employed' ? company : '',
+      currentPosition: employmentStatus === 'employed' ? position : '',
       city,
       cardPhotoUrl,
       alumniStatus: 0
     }
 
     // 添加可选字段
+    if (employmentStatus === 'freelance' && occupationDesc) updateData.occupationDesc = occupationDesc
     if (message) updateData.messageToSchool = message
     if (diplomaUrls && diplomaUrls.length > 0) updateData.diplomaUrls = diplomaUrls
     if (proofUrls && proofUrls.length > 0) updateData.verifyProof = proofUrls

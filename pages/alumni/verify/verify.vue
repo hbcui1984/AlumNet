@@ -64,7 +64,7 @@
             <text class="form-label required">本校学历</text>
             <text class="edu-section-hint">{{ schoolConfig.name || '本校' }}的就读经历</text>
           </view>
-          <view v-if="formData.localEducations.length < 3" class="add-btn" @click="addLocalEducation">
+          <view v-if="formData.localEducations.length < localDegreeOptions.length" class="add-btn" @click="addLocalEducation">
             <uni-icons type="plusempty" size="16" color="var(--primary-color)"></uni-icons>
             <text class="add-text">添加</text>
           </view>
@@ -286,13 +286,49 @@
         </view>
       </view>
 
-      <!-- 现工作单位及职务 -->
+      <!-- 就业状态 -->
       <view class="form-item">
-        <text class="form-label required">现工作单位及职务</text>
+        <text class="form-label required">就业状态</text>
+        <view class="radio-group-row">
+          <view
+            v-for="opt in employmentOptions"
+            :key="opt.value"
+            class="radio-option"
+            :class="{ active: formData.employmentStatus === opt.value }"
+            @click="formData.employmentStatus = opt.value"
+          >
+            <text>{{ opt.label }}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 工作单位（仅在职显示） -->
+      <view v-if="formData.employmentStatus === 'employed'" class="form-item">
+        <text class="form-label required">工作单位</text>
         <input
           class="form-input"
-          v-model="formData.workInfo"
-          placeholder="请输入现工作单位及职务"
+          v-model="formData.company"
+          placeholder="请输入工作单位"
+        />
+      </view>
+
+      <!-- 职位（仅在职显示） -->
+      <view v-if="formData.employmentStatus === 'employed'" class="form-item">
+        <text class="form-label required">职位</text>
+        <input
+          class="form-input"
+          v-model="formData.position"
+          placeholder="请输入职位"
+        />
+      </view>
+
+      <!-- 职业描述（自由职业显示） -->
+      <view v-if="formData.employmentStatus === 'freelance'" class="form-item">
+        <text class="form-label">职业描述</text>
+        <input
+          class="form-input"
+          v-model="formData.occupationDesc"
+          placeholder="请简单描述您的职业（可选）"
         />
       </view>
 
@@ -414,7 +450,10 @@ export default {
       formData: {
         realName: '',
         gender: 0,
-        workInfo: '',
+        employmentStatus: 'employed',
+        company: '',
+        position: '',
+        occupationDesc: '',
         message: '',
         city: '',
         cardPhoto: [],
@@ -520,6 +559,14 @@ export default {
     localDegreeOptions() {
       const localDegrees = this.schoolConfig.localDegrees || ['bachelor', 'master', 'doctor']
       return this.allDegreeOptions.filter(d => localDegrees.includes(d.value))
+    },
+    employmentOptions() {
+      return [
+        { value: 'employed', label: '在职' },
+        { value: 'freelance', label: '自由职业' },
+        { value: 'retired', label: '退休' },
+        { value: 'student', label: '在读学生' }
+      ]
     }
   },
   onLoad() {
@@ -586,8 +633,17 @@ export default {
           if (profileRes.data.gender) {
             this.formData.gender = profileRes.data.gender
           }
-          if (profileRes.data.workInfo) {
-            this.formData.workInfo = profileRes.data.workInfo
+          if (profileRes.data.employmentStatus) {
+            this.formData.employmentStatus = profileRes.data.employmentStatus
+          }
+          if (profileRes.data.currentCompany) {
+            this.formData.company = profileRes.data.currentCompany
+          }
+          if (profileRes.data.currentPosition) {
+            this.formData.position = profileRes.data.currentPosition
+          }
+          if (profileRes.data.occupationDesc) {
+            this.formData.occupationDesc = profileRes.data.occupationDesc
           }
           if (profileRes.data.city) {
             this.formData.city = profileRes.data.city
@@ -782,9 +838,15 @@ export default {
         }
       }
 
-      if (!this.formData.workInfo) {
-        uni.showToast({ title: '请输入现工作单位及职务', icon: 'none' })
-        return false
+      if (this.formData.employmentStatus === 'employed') {
+        if (!this.formData.company) {
+          uni.showToast({ title: '请输入工作单位', icon: 'none' })
+          return false
+        }
+        if (!this.formData.position) {
+          uni.showToast({ title: '请输入职位', icon: 'none' })
+          return false
+        }
       }
 
       if (!this.formData.city) {
@@ -876,7 +938,10 @@ export default {
         const res = await alumniCo.submitVerification({
           realName: this.formData.realName,
           gender: this.formData.gender,
-          workInfo: this.formData.workInfo,
+          employmentStatus: this.formData.employmentStatus,
+          company: this.formData.company,
+          position: this.formData.position,
+          occupationDesc: this.formData.occupationDesc,
           message: this.formData.message,
           city: this.formData.city,
           cardPhotoUrl,
@@ -983,7 +1048,6 @@ export default {
 
 .section-title {
   font-size: 32rpx;
-  font-weight: bold;
   color: #333;
 }
 
@@ -1039,6 +1103,23 @@ export default {
 .radio-group-row {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.radio-option {
+  padding: 12rpx 32rpx;
+  border-radius: 32rpx;
+  border: 1rpx solid #ddd;
+  font-size: 28rpx;
+  color: #666;
+  background: #f5f5f5;
+
+  &.active {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: var(--primary-light, #eef2ff);
+  }
 }
 
 .radio-label {
