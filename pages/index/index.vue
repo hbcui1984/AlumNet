@@ -36,6 +36,16 @@
         <uni-icons type="arrowright" size="14" color="var(--primary-color)"></uni-icons>
       </view>
     </view>
+    <view v-else class="card-banner" @click="goToCard">
+      <view class="banner-content">
+        <uni-icons type="auth-filled" size="20" color="var(--primary-color)"></uni-icons>
+        <text class="banner-text verified-text">已认证校友</text>
+      </view>
+      <view class="banner-action">
+        <text>查看校友卡</text>
+        <uni-icons type="arrowright" size="14" color="var(--primary-color)"></uni-icons>
+      </view>
+    </view>
 
     <!-- 快捷入口 -->
     <view class="quick-entry">
@@ -162,7 +172,7 @@
 </template>
 
 <script>
-import { store } from '@/uni_modules/uni-id-pages/common/store.js'
+import { store, mutations } from '@/uni_modules/uni-id-pages/common/store.js'
 import customTabbar from '@/components/custom-tabbar/custom-tabbar.vue'
 
 const alumniCo = uniCloud.importObject('alumni-co')
@@ -198,8 +208,9 @@ export default {
     this.loadData()
   },
   onShow() {
-    // 刷新好友请求数量
     if (this.hasLogin && uniCloud.getCurrentUserInfo().tokenExpired > Date.now()) {
+      // 刷新用户状态（含 alumniStatus），确保审核通过后 banner 消失
+      mutations.updateUserInfo()
       this.loadFriendRequestCount()
     }
   },
@@ -306,6 +317,11 @@ export default {
     goToVerify() {
       uni.navigateTo({
         url: '/pages/alumni/verify/verify'
+      })
+    },
+    goToCard() {
+      uni.navigateTo({
+        url: '/pages/alumni/card/card'
       })
     },
     goToAlumniList() {
@@ -467,6 +483,23 @@ export default {
   flex-direction: row;
   align-items: center;
   font-size: 26rpx;
+  color: var(--primary-color);
+}
+
+.card-banner {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20rpx;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #EEF2FF, #E0E8FF);
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(43, 92, 230, 0.2);
+  box-shadow: 0 2rpx 8rpx rgba(43, 92, 230, 0.08);
+}
+
+.verified-text {
   color: var(--primary-color);
 }
 
