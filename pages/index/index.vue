@@ -376,7 +376,6 @@ export default {
   align-items: center;
   padding: 30rpx;
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 50%, var(--primary-light) 100%);
-  padding-top: calc(30rpx + env(safe-area-inset-top));
   min-height: 160rpx;
   position: relative;
   overflow: hidden;

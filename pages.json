@@ -3,7 +3,6 @@
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "首页",
-				"navigationStyle": "custom",
 				"enablePullDownRefresh": true
 			}
 		},
@@ -137,7 +136,7 @@
 		{
 			"path": "pages/ucenter/ucenter",
 			"style": {
-				"navigationStyle": "custom"
+				"navigationBarTitleText": "我的"
 			}
 		},
 		{
@@ -152,13 +151,6 @@
 			"path": "pages/ucenter/settings/settings",
 			"style": {
 				"navigationBarTitleText": "设置"
-			}
-		},
-		{
-			"path": "pages/ucenter/read-news-log/read-news-log",
-			"style": {
-				"navigationBarTitleText": "阅读记录",
-				"enablePullDownRefresh": true
 			}
 		}
 		// #ifdef APP
