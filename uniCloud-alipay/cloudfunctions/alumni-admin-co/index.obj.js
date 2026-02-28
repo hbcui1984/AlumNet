@@ -226,6 +226,7 @@ module.exports = {
         gender: user.gender,
         status: user.alumniStatus ?? -1,
         education: primaryEdu || null,
+        educations: user.educations || [],
         create_date: user.submitTime,
         userInfo: {
           _id: user._id,
@@ -437,14 +438,10 @@ module.exports = {
     const listRes = await query
       .field({
         _id: true,
-        username: true,
-        nickname: true,
-        mobile: true,
-        avatar: true,
         realName: true,
         alumniStatus: true,
-        register_date: true,
-        last_login_date: true
+        educations: true,
+        register_date: true
       })
       .orderBy('register_date', 'desc')
       .skip((page - 1) * pageSize)
