@@ -94,15 +94,6 @@
 			}
 		},
 		{
-			"path": "pages/list/list",
-			"style": {
-				// #ifndef APP
-				"enablePullDownRefresh": true,
-				// #endif
-				"navigationStyle": "custom"
-			}
-		},
-		{
 			"path": "pages/grid/grid",
 			"style": {
 				//#ifndef MP
@@ -110,30 +101,6 @@
 				//#endif
 			}
 		}, {
-			"path": "pages/list/search/search",
-			"style": {
-				"navigationBarTitleText": "搜索"
-			}
-		}, {
-			"path": "pages/list/detail",
-			"style": {
-				"app-plus": {
-					"titleNView": {
-						"buttons": [{
-							"type": "share"
-						}],
-						"type": "transparent"
-					}
-				},
-				"h5": {
-					"titleNView": {
-						"type": "transparent"
-					}
-				},
-				"navigationBarTitleText": "文章详情"
-			}
-		},
-		{
 			"path": "pages/ucenter/ucenter",
 			"style": {
 				"navigationBarTitleText": "我的"
@@ -316,15 +283,10 @@
 	},
 	"condition": {
 		"list": [{
-				"path": "pages/list/detail"
-			}, {
-				"path": "pages/list/list"
-			},
-			{
 				"path": "pages/ucenter/settings/settings"
 			}
 		],
-		"current": 1
+		"current": 0
 	},
 	"tabBar": {
 		"custom": true,

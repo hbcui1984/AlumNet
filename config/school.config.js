@@ -6,11 +6,18 @@ module.exports = {
   // ========== 基础信息（必填） ==========
   name: '示例大学',                      // 学校名称
   shortName: '示例',                     // 简称
-  type: 'university',                    // 类型: university/highschool/middleschool
+  type: 'highschool',                    // 类型: university/highschool/middleschool
   logo: '/static/school-logo.png',       // 学校Logo路径
+  
+  // 本校学历类型（支持多个，用于六年一贯制等场景）
+  // university: ['bachelor', 'master', 'doctor']
+  // highschool: ['highschool']
+  // middleschool: ['middleschool']
+  // 六年一贯制: ['middleschool', 'highschool']
+  localDegrees: ['highschool'],  // 本校提供的学历类型
 
   // ========== 小程序信息（必填） ==========
-  appName: '示例大学校友会',              // 小程序名称
+  appName: '济源一中校友会',              // 小程序名称
   appId: '',                             // 微信小程序AppID（发布时填写）
 
   // ========== 主题配置（可选，有默认值） ==========
