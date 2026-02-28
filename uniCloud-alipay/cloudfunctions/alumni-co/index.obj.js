@@ -685,6 +685,53 @@ module.exports = {
   },
 
   /**
+   * 已认证校友更新自己的信息
+   * type='basic' 直接生效；type='education' 本校学历需重新审核
+   */
+  async updateVerifiedProfile(data) {
+    checkLogin(this.uid)
+
+    const userCollection = db.collection('uni-id-users')
+    const userRes = await userCollection.doc(this.uid).field({ alumniStatus: 1 }).get()
+    if (userRes.data[0]?.alumniStatus !== 1) {
+      throw { errCode: 'NOT_VERIFIED', errMsg: '仅已认证校友可修改信息' }
+    }
+
+    if (data.type === 'basic') {
+      const { employmentStatus, currentCompany, currentPosition, occupationDesc, city, bio, messageToSchool } = data
+      const update = {}
+      if (employmentStatus !== undefined) update.employmentStatus = employmentStatus
+      if (currentCompany !== undefined) update.currentCompany = currentCompany
+      if (currentPosition !== undefined) update.currentPosition = currentPosition
+      if (occupationDesc !== undefined) update.occupationDesc = occupationDesc
+      if (city !== undefined) update.city = city
+      if (bio !== undefined) update.bio = bio
+      if (messageToSchool !== undefined) update.messageToSchool = messageToSchool
+      await userCollection.doc(this.uid).update(update)
+      return { errCode: 0, errMsg: '保存成功' }
+    }
+
+    if (data.type === 'education') {
+      const { localEducations } = data
+      if (!localEducations || localEducations.length === 0) {
+        throw { errCode: 'INVALID_PARAM', errMsg: '请填写本校学历' }
+      }
+      // 合并：保留非本校学历，替换本校学历，重置审核状态
+      const currentUser = await userCollection.doc(this.uid).field({ educations: 1 }).get()
+      const otherEds = (currentUser.data[0]?.educations || []).filter(e => e.isLocal === false)
+      const localEds = localEducations.map(e => ({ ...e, isLocal: true }))
+      await userCollection.doc(this.uid).update({
+        educations: [...localEds, ...otherEds],
+        alumniStatus: 0,  // 重置为待审核
+        alumniVerifyTime: null
+      })
+      return { errCode: 0, errMsg: '已提交审核，请等待管理员审核' }
+    }
+
+    throw { errCode: 'INVALID_PARAM', errMsg: '无效的 type' }
+  },
+
+  /**
    * 获取校友卡信息
    * @returns {Promise<Object>} 校友卡信息
    */
