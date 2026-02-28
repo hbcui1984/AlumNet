@@ -980,7 +980,7 @@ export default {
     },
     navigateToProfile() {
       uni.navigateTo({
-        url: '/pages/alumni/profile/profile'
+        url: '/pages/alumni/verify/verify'
       })
     }
   }

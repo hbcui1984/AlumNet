@@ -20,8 +20,8 @@
                 <text class="value">{{ cardData.realName }}</text>
               </view>
               <view class="info-item">
-                <text class="label">毕业时间：</text>
-                <text class="value">{{ formatGraduationYear }}</text>
+                <text class="label">入学年份：</text>
+                <text class="value">{{ formatEnrollmentYear }}</text>
               </view>
               <view v-if="cardData.college" class="info-item">
                 <text class="label">学　院：</text>
@@ -52,8 +52,7 @@
 
       <!-- 操作按钮 -->
       <view class="action-buttons">
-        <button class="btn-save" @click="saveToAlbum">保存到相册</button>
-        <button class="btn-share" open-type="share">分享给好友</button>
+        <button class="btn-detail" @click="goToProfileEdit">查看完整信息</button>
       </view>
 
       <!-- 提示信息 -->
@@ -97,12 +96,9 @@ export default {
     },
 
     // 格式化毕业年份
-    formatGraduationYear() {
-      if (this.cardData.graduationYear) {
-        return `${this.cardData.graduationYear}年`
-      }
+    formatEnrollmentYear() {
       if (this.cardData.enrollmentYear) {
-        return `${this.cardData.enrollmentYear}级`
+        return `${this.cardData.enrollmentYear}年`
       }
       return '-'
     },
@@ -184,6 +180,9 @@ export default {
       }
     },
 
+    goToProfileEdit() {
+      uni.navigateTo({ url: '/pages/alumni/verify/verify' })
+    },
     // 去认证
     goToVerify() {
       uni.navigateTo({
@@ -312,13 +311,14 @@ export default {
   font-weight: 500;
 }
 
-.btn-save {
+.btn-detail {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 44rpx;
+  font-size: 32rpx;
+  font-weight: 500;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #ffffff;
-}
-
-.btn-share {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   color: #ffffff;
 }
 

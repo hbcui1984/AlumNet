@@ -87,11 +87,16 @@
 				schoolConfig: null,
 				ucenterList: [
 					[
-						{
-							"title": "我的校友卡",
-							"to": "/pages/alumni/card/card",
-							"icon": "contact"
-						},
+					{
+						"title": "我的校友卡",
+						"to": "/pages/alumni/card/card",
+						"icon": "contact"
+					},
+					{
+						"title": "校友认证信息",
+						"to": "/pages/alumni/verify/verify",
+						"icon": "auth"
+					},
 						// #ifdef APP-PLUS
 						{
 							"title": this.$t('mine.signInByAd'),
@@ -188,8 +193,7 @@
 			},
 			formatGraduationYear() {
 				if (!this.cardData) return ''
-				if (this.cardData.graduationYear) return `${this.cardData.graduationYear}年`
-				if (this.cardData.enrollmentYear) return `${this.cardData.enrollmentYear}级`
+				if (this.cardData.enrollmentYear) return `${this.cardData.enrollmentYear}年入学`
 				return ''
 			},
 			displayName() {
@@ -258,6 +262,12 @@
 				}
 			},
 			toUserInfo() {
+				if (!this.hasLogin) {
+					uni.navigateTo({
+						url: '/uni_modules/uni-id-pages/pages/login/login-withoutpwd'
+					})
+					return
+				}
 				uni.navigateTo({
 					url: '/uni_modules/uni-id-pages/pages/userinfo/userinfo'
 				})
