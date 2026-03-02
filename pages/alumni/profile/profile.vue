@@ -153,11 +153,6 @@
           </view>
         </view>
 
-        <!-- 校友卡号 -->
-        <view class="form-item">
-          <text class="form-label optional">校友卡号</text>
-          <input class="form-input" v-model="authData.alumniCardNo" placeholder="如有校友卡请填写" maxlength="30" />
-        </view>
       </view>
 
       <!-- 其他学历（无需审核） -->
@@ -404,7 +399,6 @@ export default {
           studentId: ''
         }],
         otherEducations: [],
-        alumniCardNo: ''
       },
 
       // 原始认证信息（用于检测变化）
@@ -548,8 +542,7 @@ export default {
               teachers: '',
               studentId: ''
             }],
-            otherEducations: otherEds,
-            alumniCardNo: data.alumniCardNo || ''
+            otherEducations: otherEds
           }
 
           // 保存原始认证信息
@@ -801,8 +794,7 @@ export default {
         const res = await alumniCo.submitVerification({
           realName: this.authData.realName,
           gender: this.authData.gender,
-          educations,
-          alumniCardNo: this.authData.alumniCardNo
+          educations
         })
         if (res.errCode === 0) {
           uni.showToast({ title: '提交成功，等待审核', icon: 'success' })
