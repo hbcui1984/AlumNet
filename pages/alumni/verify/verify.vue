@@ -116,7 +116,7 @@
 
           <!-- 毕业年份 -->
           <view class="form-item">
-            <text class="form-label">毕业年份</text>
+            <text class="form-label optional">毕业年份</text>
             <picker
               mode="selector"
               :value="getYearIndex(edu.graduationYear)"
@@ -124,7 +124,7 @@
               @change="onLocalGraduationYearChange($event, index)"
             >
               <view class="picker-value">
-                {{ edu.graduationYear || '请选择毕业年份（可选）' }}
+                {{ edu.graduationYear || '请选择毕业年份' }}
                 <uni-icons type="arrowright" size="14" color="#999"></uni-icons>
               </view>
             </picker>
@@ -132,7 +132,7 @@
 
           <!-- 学院（大学类型） -->
           <view v-if="isUniversityType" class="form-item">
-            <text class="form-label">学院</text>
+            <text class="form-label optional">学院</text>
             <picker
               v-if="collegeOptions.length > 0"
               :value="getCollegeIndex(edu.college)"
@@ -150,7 +150,7 @@
 
           <!-- 专业（大学类型） -->
           <view v-if="isUniversityType" class="form-item">
-            <text class="form-label">专业</text>
+            <text class="form-label optional">专业</text>
             <picker
               v-if="getMajorOptions(edu.college).length > 0"
               :value="getMajorIndex(edu.college, edu.major)"
@@ -167,8 +167,8 @@
 
           <!-- 班级 -->
           <view class="form-item">
-            <text class="form-label">班级</text>
-            <input class="form-input" v-model="edu.className" placeholder="请输入班级（可选）" />
+            <text class="form-label optional">班级</text>
+            <input class="form-input" v-model="edu.className" placeholder="请输入班级" />
           </view>
 
           <!-- 班主任（高中/初中校友会） -->
@@ -179,14 +179,14 @@
 
           <!-- 任课老师（高中/初中校友会） -->
           <view v-if="!isUniversityType" class="form-item">
-            <text class="form-label">任课老师</text>
-            <input class="form-input" v-model="edu.teachers" placeholder="请输入任意任课老师（可选）" />
+            <text class="form-label optional">任课老师</text>
+            <input class="form-input" v-model="edu.teachers" placeholder="请输入任意任课老师" />
           </view>
 
           <!-- 学号 -->
           <view class="form-item">
-            <text class="form-label">学号</text>
-            <input class="form-input" v-model="edu.studentId" placeholder="请输入学号（可选）" />
+            <text class="form-label optional">学号</text>
+            <input class="form-input" v-model="edu.studentId" placeholder="请输入学号" />
           </view>
         </view>
       </view>
@@ -195,8 +195,8 @@
       <view class="education-section mt-section">
         <view class="education-header">
           <view>
-            <text class="form-label">其他学历</text>
-            <text class="edu-section-hint">非本校的学习经历（选填）</text>
+            <text class="form-label optional">其他学历</text>
+            <text class="edu-section-hint">非本校的学习经历</text>
           </view>
           <view v-if="formData.otherEducations.length < 3" class="add-btn" @click="addOtherEducation">
             <uni-icons type="plusempty" size="16" color="var(--primary-color)"></uni-icons>
@@ -260,7 +260,7 @@
 
           <!-- 毕业年份 -->
           <view class="form-item">
-            <text class="form-label">毕业年份</text>
+            <text class="form-label optional">毕业年份</text>
             <picker
               mode="selector"
               :value="getYearIndex(edu.graduationYear)"
@@ -268,7 +268,7 @@
               @change="onOtherGraduationYearChange($event, index)"
             >
               <view class="picker-value">
-                {{ edu.graduationYear || '请选择毕业年份（可选）' }}
+                {{ edu.graduationYear || '请选择毕业年份' }}
                 <uni-icons type="arrowright" size="14" color="#999"></uni-icons>
               </view>
             </picker>
@@ -276,12 +276,12 @@
 
           <!-- 学院/专业 -->
           <view class="form-item">
-            <text class="form-label">学院</text>
-            <input class="form-input" v-model="edu.college" placeholder="请输入学院（可选）" />
+            <text class="form-label optional">学院</text>
+            <input class="form-input" v-model="edu.college" placeholder="请输入学院" />
           </view>
           <view class="form-item">
-            <text class="form-label">专业</text>
-            <input class="form-input" v-model="edu.major" placeholder="请输入专业（可选）" />
+            <text class="form-label optional">专业</text>
+            <input class="form-input" v-model="edu.major" placeholder="请输入专业" />
           </view>
         </view>
       </view>
@@ -324,21 +324,21 @@
 
       <!-- 职业描述（自由职业显示） -->
       <view v-if="formData.employmentStatus === 'freelance'" class="form-item">
-        <text class="form-label">职业描述</text>
+        <text class="form-label optional">职业描述</text>
         <input
           class="form-input"
           v-model="formData.occupationDesc"
-          placeholder="请简单描述您的职业（可选）"
+          placeholder="请简单描述您的职业"
         />
       </view>
 
       <!-- 对母校寄语 -->
       <view class="form-item">
-        <text class="form-label">对母校寄语</text>
+        <text class="form-label optional">对母校寄语</text>
         <textarea
           class="form-textarea"
           v-model="formData.message"
-          placeholder="请输入对母校的寄语（可选）"
+          placeholder="请输入对母校的寄语"
           maxlength="200"
         />
       </view>
@@ -372,7 +372,7 @@
       <!-- 学历证书 -->
       <view class="photo-section">
         <view class="section-header">
-          <text class="section-title">学历证书</text>
+          <text class="section-title optional">学历证书</text>
         </view>
         <uni-file-picker
           v-model="formData.diplomaPhoto"
@@ -382,7 +382,7 @@
           @select="onDiplomaSelect"
           @delete="onDiplomaDelete"
         ></uni-file-picker>
-        <text class="upload-tips">可上传毕业证、学位证等（可选）</text>
+        <text class="upload-tips">可上传毕业证、学位证等</text>
       </view>
 
       <!-- 证明材料（如果需要） -->
@@ -426,7 +426,10 @@
       </view>
       <view class="verified-actions">
         <button class="card-btn" @click="navigateToCard">查看校友卡</button>
-        <button class="edit-btn" @click="navigateToProfile">编辑个人资料</button>
+        <button class="profile-btn" @click="navigateToProfile">编辑个人资料</button>
+      </view>
+      <view class="action-tips">
+        <text class="tips-text">点击"编辑个人资料"可修改认证信息和扩展资料</text>
       </view>
     </view>
   </view>
@@ -980,7 +983,7 @@ export default {
     },
     navigateToProfile() {
       uni.navigateTo({
-        url: '/pages/alumni/verify/verify'
+        url: '/pages/alumni/profile/profile'
       })
     }
   }
@@ -1146,6 +1149,13 @@ export default {
     content: '*';
     color: #E74C3C;
     margin-right: 4rpx;
+  }
+
+  &.optional::after {
+    content: '（选填）';
+    color: #999;
+    font-size: 24rpx;
+    margin-left: 8rpx;
   }
 }
 
@@ -1336,14 +1346,29 @@ export default {
   border: none;
 }
 
-.edit-btn {
+.profile-btn {
   height: 80rpx;
   line-height: 80rpx;
-  background-color: #fff;
-  color: var(--primary-color);
+  background-color: var(--primary-color);
+  color: #fff;
   font-size: 30rpx;
-  border: 2rpx solid var(--primary-color);
   border-radius: 40rpx;
+  border: none;
+}
+
+.action-tips {
+  margin-top: 30rpx;
+  padding: 20rpx;
+  background-color: #E8F4FF;
+  border-radius: 12rpx;
+}
+
+.tips-text {
+  display: block;
+  font-size: 24rpx;
+  color: #2B5CE6;
+  line-height: 1.6;
+  text-align: center;
 }
 
 .local-card {
