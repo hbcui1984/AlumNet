@@ -728,6 +728,18 @@ module.exports = {
       return { errCode: 0, errMsg: '已提交审核，请等待管理员审核' }
     }
 
+    if (data.type === 'otherEducations') {
+      const { otherEducations } = data
+      // 合并：保留本校学历，替换其他学历，不重置审核状态
+      const currentUser = await userCollection.doc(this.uid).field({ educations: 1 }).get()
+      const localEds = (currentUser.data[0]?.educations || []).filter(e => e.isLocal !== false)
+      const otherEds = (otherEducations || []).map(e => ({ ...e, isLocal: false }))
+      await userCollection.doc(this.uid).update({
+        educations: [...localEds, ...otherEds]
+      })
+      return { errCode: 0, errMsg: '保存成功' }
+    }
+
     throw { errCode: 'INVALID_PARAM', errMsg: '无效的 type' }
   },
 
