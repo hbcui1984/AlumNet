@@ -1,0 +1,49 @@
+[
+  {
+    "_id": "dict_industry",
+    "type": "industry",
+    "items": [
+      { "value": "internet", "label": "互联网/IT", "sort": 1, "enabled": true },
+      { "value": "finance", "label": "金融", "sort": 2, "enabled": true },
+      { "value": "education", "label": "教育/培训", "sort": 3, "enabled": true },
+      { "value": "medical", "label": "医疗/健康", "sort": 4, "enabled": true },
+      { "value": "manufacturing", "label": "制造业", "sort": 5, "enabled": true },
+      { "value": "realestate", "label": "房地产/建筑", "sort": 6, "enabled": true },
+      { "value": "retail", "label": "零售/电商", "sort": 7, "enabled": true },
+      { "value": "media", "label": "传媒/广告", "sort": 8, "enabled": true },
+      { "value": "consulting", "label": "咨询/法律", "sort": 9, "enabled": true },
+      { "value": "government", "label": "政府/公共事业", "sort": 10, "enabled": true },
+      { "value": "energy", "label": "能源/环保", "sort": 11, "enabled": true },
+      { "value": "transportation", "label": "交通/物流", "sort": 12, "enabled": true },
+      { "value": "agriculture", "label": "农业", "sort": 13, "enabled": true },
+      { "value": "tourism", "label": "旅游/酒店", "sort": 14, "enabled": true },
+      { "value": "culture", "label": "文化/娱乐", "sort": 15, "enabled": true },
+      { "value": "other", "label": "其他", "sort": 99, "enabled": true }
+    ],
+    "createTime": 1709481600000,
+    "updateTime": 1709481600000
+  },
+  {
+    "_id": "dict_interest",
+    "type": "interest",
+    "items": [
+      { "value": "sports", "label": "运动健身", "sort": 1, "enabled": true },
+      { "value": "reading", "label": "阅读", "sort": 2, "enabled": true },
+      { "value": "music", "label": "音乐", "sort": 3, "enabled": true },
+      { "value": "movie", "label": "电影", "sort": 4, "enabled": true },
+      { "value": "travel", "label": "旅行", "sort": 5, "enabled": true },
+      { "value": "photography", "label": "摄影", "sort": 6, "enabled": true },
+      { "value": "cooking", "label": "美食烹饪", "sort": 7, "enabled": true },
+      { "value": "gaming", "label": "游戏", "sort": 8, "enabled": true },
+      { "value": "art", "label": "艺术", "sort": 9, "enabled": true },
+      { "value": "tech", "label": "科技数码", "sort": 10, "enabled": true },
+      { "value": "investment", "label": "投资理财", "sort": 11, "enabled": true },
+      { "value": "volunteer", "label": "公益志愿", "sort": 12, "enabled": true },
+      { "value": "pet", "label": "宠物", "sort": 13, "enabled": true },
+      { "value": "fashion", "label": "时尚", "sort": 14, "enabled": true },
+      { "value": "handcraft", "label": "手工DIY", "sort": 15, "enabled": true }
+    ],
+    "createTime": 1709481600000,
+    "updateTime": 1709481600000
+  }
+]

@@ -739,7 +739,14 @@ export default {
       try {
         const res = await alumniCo.updateMyProfile(this.formData)
         if (res.errCode === 0) {
-          uni.showToast({ title: '保存成功', icon: 'success' })
+          uni.showToast({
+            title: '保存成功',
+            icon: 'success',
+            duration: 1500
+          })
+          setTimeout(() => {
+            uni.navigateBack()
+          }, 1500)
         } else {
           uni.showToast({ title: res.errMsg || '保存失败', icon: 'none' })
         }
@@ -835,8 +842,15 @@ export default {
           otherEducations: this.authData.otherEducations
         })
         if (res.errCode === 0) {
-          uni.showToast({ title: '保存成功', icon: 'success' })
+          uni.showToast({
+            title: '保存成功',
+            icon: 'success',
+            duration: 1500
+          })
           this.originalOtherEducations = JSON.parse(JSON.stringify(this.authData.otherEducations))
+          setTimeout(() => {
+            uni.navigateBack()
+          }, 1500)
         } else {
           uni.showToast({ title: res.errMsg || '保存失败', icon: 'none' })
         }
