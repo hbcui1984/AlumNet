@@ -367,6 +367,14 @@
           @delete="onCardPhotoDelete"
         ></uni-file-picker>
         <text class="upload-tips">用于制作校友卡，请上传清晰的正面照片</text>
+        <view class="checkbox-row">
+          <checkbox-group @change="onSetAsAvatarChange">
+            <label class="checkbox-label">
+              <checkbox :checked="formData.setAsAvatar" color="var(--primary-color)" />
+              <text>同时设为头像</text>
+            </label>
+          </checkbox-group>
+        </view>
       </view>
 
       <!-- 学历证书 -->
@@ -460,6 +468,7 @@ export default {
         message: '',
         city: '',
         cardPhoto: [],
+        setAsAvatar: true,
         diplomaPhoto: [],
         localEducations: [
           {
@@ -792,6 +801,9 @@ export default {
     onCardPhotoDelete(e) {
       console.log('删除校友卡照片', e)
     },
+    onSetAsAvatarChange(e) {
+      this.formData.setAsAvatar = e.detail.value.length > 0
+    },
     onDiplomaSelect(e) {
       console.log('选择学历证书', e)
     },
@@ -948,6 +960,7 @@ export default {
           message: this.formData.message,
           city: this.formData.city,
           cardPhotoUrl,
+          avatar: this.formData.setAsAvatar ? cardPhotoUrl : undefined,
           diplomaUrls,
           educations,
           proofUrls,
@@ -1210,6 +1223,21 @@ export default {
   color: #999;
   margin-top: 12rpx;
   display: block;
+}
+
+.checkbox-row {
+  margin-top: 20rpx;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.checkbox-label text {
+  margin-left: 12rpx;
 }
 
 .education-header {

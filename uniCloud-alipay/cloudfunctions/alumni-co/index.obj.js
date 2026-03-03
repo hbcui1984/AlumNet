@@ -316,6 +316,7 @@ module.exports = {
       message,
       city,
       cardPhotoUrl,
+      avatar,
       diplomaUrls,
       schoolType
     } = data
@@ -398,6 +399,7 @@ module.exports = {
     }
 
     // 添加可选字段
+    if (avatar) updateData.avatar = avatar
     if (employmentStatus === 'freelance' && occupationDesc) updateData.occupationDesc = occupationDesc
     if (message) updateData.messageToSchool = message
     if (diplomaUrls && diplomaUrls.length > 0) updateData.diplomaUrls = diplomaUrls
