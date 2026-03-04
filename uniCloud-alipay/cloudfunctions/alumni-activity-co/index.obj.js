@@ -82,6 +82,12 @@ module.exports = {
         // 默认只显示报名中、进行中、已结束的活动
         query.status = dbCmd.in([1, 2, 3, 4])
       }
+
+      // 只显示已审核通过的活动（官方活动或审核通过的用户活动）
+      query.$or = [
+        { isOfficial: true },
+        { auditStatus: 1 }
+      ]
       
       // 关键词搜索
       if (keyword && keyword.trim()) {
@@ -237,17 +243,20 @@ module.exports = {
         currentParticipants: 0,
         fee: activityData.fee || 0,
         targetAudience: activityData.targetAudience || {},
-        status: activityData.status || 1, // 默认报名中
+        status: activityData.status || 0, // 默认草稿
+        isOfficial: false, // 用户发布的活动非官方
+        auditStatus: 0, // 待审核
         viewCount: 0,
         tags: activityData.tags || [],
         createTime: now,
         updateTime: now
       }
-      
+
       const res = await db.collection('alumni-activities').add(activity)
-      
+
       return {
         errCode: 0,
+        errMsg: '活动已提交，等待管理员审核',
         errMsg: '发布成功',
         data: {
           activityId: res.id

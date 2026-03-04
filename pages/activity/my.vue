@@ -35,11 +35,16 @@
           <view class="activity-content">
             <view class="activity-header">
               <text class="activity-title">{{ activity.title }}</text>
-              <view v-if="currentTab === 'signed'" class="signup-status" :class="'signup-' + activity.signupStatus">
-                <text>{{ getSignupStatusText(activity.signupStatus) }}</text>
-              </view>
-              <view v-else class="activity-status" :class="'status-' + activity.status">
-                <text>{{ getStatusText(activity.status) }}</text>
+              <view class="header-badges">
+                <view v-if="currentTab === 'published' && !activity.isOfficial" class="audit-status" :class="'audit-' + activity.auditStatus">
+                  <text>{{ getAuditStatusText(activity.auditStatus) }}</text>
+                </view>
+                <view v-if="currentTab === 'signed'" class="signup-status" :class="'signup-' + activity.signupStatus">
+                  <text>{{ getSignupStatusText(activity.signupStatus) }}</text>
+                </view>
+                <view v-else class="activity-status" :class="'status-' + activity.status">
+                  <text>{{ getStatusText(activity.status) }}</text>
+                </view>
               </view>
             </view>
             <view class="activity-info">
@@ -168,6 +173,14 @@ export default {
         3: '进行中',
         4: '已结束',
         5: '已取消'
+      }
+      return statusMap[status] || '未知'
+    },
+    getAuditStatusText(status) {
+      const statusMap = {
+        0: '待审核',
+        1: '已通过',
+        2: '已拒绝'
       }
       return statusMap[status] || '未知'
     },
@@ -315,13 +328,41 @@ export default {
   -webkit-box-orient: vertical;
 }
 
+.header-badges {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.audit-status {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.audit-0 {
+  background-color: #fff3e0;
+  color: #ff9800;
+}
+
+.audit-1 {
+  background-color: #e8f5e9;
+  color: #4caf50;
+}
+
+.audit-2 {
+  background-color: #ffebee;
+  color: #f44336;
+}
+
 .activity-status,
 .signup-status {
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 12px;
-  margin-left: 8px;
-  flex-shrink: 0;
 }
 
 .status-1 {

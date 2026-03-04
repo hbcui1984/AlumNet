@@ -767,5 +767,30 @@ module.exports = {
       errCode: 0,
       data: result
     }
+  },
+
+  // ==================== 活动审核 ====================
+
+  async auditActivity({ activityId, auditStatus, auditRemark }) {
+    checkAdminPermission(this.userInfo)
+
+    if (!activityId) {
+      throw { errCode: 'INVALID_PARAM', errMsg: '活动ID不能为空' }
+    }
+    if (![1, 2].includes(auditStatus)) {
+      throw { errCode: 'INVALID_PARAM', errMsg: '审核状态无效' }
+    }
+
+    const updateData = {
+      auditStatus,
+      auditTime: Date.now(),
+      updateTime: Date.now()
+    }
+    if (auditRemark) updateData.auditRemark = auditRemark
+    if (auditStatus === 1) updateData.status = 1
+
+    await db.collection('alumni-activities').doc(activityId).update(updateData)
+
+    return { errCode: 0, errMsg: auditStatus === 1 ? '审核通过' : '已拒绝' }
   }
 }

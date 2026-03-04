@@ -12,8 +12,13 @@
       <view class="activity-info-card">
         <view class="activity-header">
           <text class="activity-title">{{ activity.title }}</text>
-          <view class="activity-status" :class="'status-' + activity.status">
-            <text>{{ getStatusText(activity.status) }}</text>
+          <view class="header-badges">
+            <view v-if="activity.isOfficial" class="official-badge">
+              <text>官方</text>
+            </view>
+            <view class="activity-status" :class="'status-' + activity.status">
+              <text>{{ getStatusText(activity.status) }}</text>
+            </view>
           </view>
         </view>
 
@@ -364,12 +369,28 @@ export default {
   line-height: 28px;
 }
 
+.header-badges {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+
+.official-badge {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  background-color: #fff3e0;
+  color: #ff9800;
+  font-weight: 600;
+}
+
 .activity-status {
   padding: 4px 12px;
   border-radius: 4px;
   font-size: 12px;
-  margin-left: 12px;
-  flex-shrink: 0;
 }
 
 .status-1 {
