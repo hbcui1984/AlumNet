@@ -26,9 +26,9 @@
 			}
 		},
 		{
-			"path": "pages/alumni/profile/profile",
+			"path": "pages/alumni/profile/detail",
 			"style": {
-				"navigationBarTitleText": "编辑资料"
+				"navigationBarTitleText": "我的资料"
 			}
 		},
 		{
@@ -65,6 +65,13 @@
 			"path": "pages/alumni/organizations/create",
 			"style": {
 				"navigationBarTitleText": "创建组织"
+			}
+		},
+		{
+			"path": "pages/alumni/organizations/my",
+			"style": {
+				"navigationBarTitleText": "我的组织",
+				"enablePullDownRefresh": true
 			}
 		},
 		{
@@ -313,7 +320,7 @@
 			"/pages/alumni/card/card",
 			"/pages/alumni/list/list",
 			"/pages/alumni/detail/detail",
-			"/pages/alumni/profile/profile",
+			"/pages/alumni/profile/detail",
 			"/pages/alumni/friends/friends",
 			"/pages/alumni/requests/requests",
 			"/pages/alumni/organizations/create",
