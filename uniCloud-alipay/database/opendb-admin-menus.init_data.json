@@ -55,6 +55,28 @@
     "create_date": 1702662469396
   },
   {
+    "menu_id": "alumni_activity",
+    "name": "活动审核",
+    "icon": "uni-icons-calendar",
+    "url": "/pages/alumni/activity/list",
+    "sort": 235,
+    "parent_id": "alumni_management",
+    "permission": [],
+    "enable": true,
+    "create_date": 1702662469396
+  },
+  {
+    "menu_id": "alumni_organization",
+    "name": "组织审核",
+    "icon": "uni-icons-flag",
+    "url": "/pages/alumni/organization/list",
+    "sort": 237,
+    "parent_id": "alumni_management",
+    "permission": [],
+    "enable": true,
+    "create_date": 1702662469396
+  },
+  {
     "menu_id": "alumni_school_config",
     "name": "学校配置",
     "icon": "uni-icons-gear",
