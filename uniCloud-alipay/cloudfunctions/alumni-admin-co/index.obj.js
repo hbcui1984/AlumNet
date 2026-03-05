@@ -771,9 +771,73 @@ module.exports = {
 
   // ==================== 活动审核 ====================
 
-  async auditActivity({ activityId, auditStatus, auditRemark }) {
-    checkAdminPermission(this.userInfo)
+  async getActivityList({ pageNum = 1, pageSize = 20 } = {}) {
+    const countRes = await db.collection('alumni-activities')
+      .where({ isOfficial: false })
+      .count()
 
+    const listRes = await db.collection('alumni-activities')
+      .where({ isOfficial: false })
+      .orderBy('createTime', 'desc')
+      .skip((pageNum - 1) * pageSize)
+      .limit(pageSize)
+      .get()
+
+    if (!listRes.data || listRes.data.length === 0) {
+      return {
+        errCode: 0,
+        data: { list: [], total: countRes.total }
+      }
+    }
+
+    const userIds = [...new Set(listRes.data.map(item => item.organizerId))]
+    const usersRes = await db.collection('uni-id-users')
+      .where({ _id: dbCmd.in(userIds) })
+      .field({ _id: true, realName: true, nickname: true })
+      .get()
+
+    const userMap = {}
+    usersRes.data.forEach(user => {
+      userMap[user._id] = user.realName || user.nickname || '未知'
+    })
+
+    const list = listRes.data.map(item => ({
+      ...item,
+      organizerName: userMap[item.organizerId]
+    }))
+
+    return {
+      errCode: 0,
+      data: { list, total: countRes.total }
+    }
+  },
+
+  async getActivityDetail({ activityId }) {
+    if (!activityId) {
+      return { errCode: 1, errMsg: '活动ID不能为空' }
+    }
+
+    const res = await db.collection('alumni-activities').doc(activityId).get()
+    if (!res.data || res.data.length === 0) {
+      return { errCode: 2, errMsg: '活动不存在' }
+    }
+
+    const activity = res.data[0]
+
+    if (activity.organizerId) {
+      const userRes = await db.collection('uni-id-users')
+        .doc(activity.organizerId)
+        .field({ realName: true, nickname: true })
+        .get()
+      if (userRes.data && userRes.data.length > 0) {
+        activity.organizerName = userRes.data[0].realName || userRes.data[0].nickname
+      }
+    }
+
+    return { errCode: 0, data: activity }
+  },
+
+  async auditActivity({ activityId, auditStatus, auditRemark }) {
     if (!activityId) {
       throw { errCode: 'INVALID_PARAM', errMsg: '活动ID不能为空' }
     }
@@ -790,6 +854,62 @@ module.exports = {
     if (auditStatus === 1) updateData.status = 1
 
     await db.collection('alumni-activities').doc(activityId).update(updateData)
+
+    return { errCode: 0, errMsg: auditStatus === 1 ? '审核通过' : '已拒绝' }
+  },
+
+  // ==================== 组织管理 ====================
+
+  async getOrganizationList({ pageNum = 1, pageSize = 20 } = {}) {
+    const countRes = await db.collection('alumni-organizations').count()
+    const listRes = await db.collection('alumni-organizations')
+      .orderBy('createTime', 'desc')
+      .skip((pageNum - 1) * pageSize)
+      .limit(pageSize)
+      .get()
+
+    if (!listRes.data || listRes.data.length === 0) {
+      return {
+        errCode: 0,
+        data: { list: [], total: countRes.total }
+      }
+    }
+
+    // 获取创建者信息
+    const creatorIds = listRes.data.map(item => item.creatorId)
+    const usersRes = await db.collection('uni-id-users')
+      .where({ _id: dbCmd.in(creatorIds) })
+      .field({ _id: true, realName: true })
+      .get()
+
+    const list = listRes.data.map(org => {
+      const creator = usersRes.data.find(u => u._id === org.creatorId)
+      return { ...org, creatorName: creator?.realName }
+    })
+
+    return {
+      errCode: 0,
+      data: { list, total: countRes.total }
+    }
+  },
+
+  async auditOrganization({ organizationId, auditStatus, auditRemark }) {
+    if (!organizationId) {
+      throw { errCode: 'INVALID_PARAM', errMsg: '组织ID不能为空' }
+    }
+    if (![1, 2].includes(auditStatus)) {
+      throw { errCode: 'INVALID_PARAM', errMsg: '审核状态无效' }
+    }
+
+    const updateData = {
+      auditStatus,
+      auditTime: Date.now(),
+      updateTime: Date.now()
+    }
+    if (auditRemark) updateData.auditRemark = auditRemark
+    if (auditStatus === 1) updateData.status = 1
+
+    await db.collection('alumni-organizations').doc(organizationId).update(updateData)
 
     return { errCode: 0, errMsg: auditStatus === 1 ? '审核通过' : '已拒绝' }
   }
