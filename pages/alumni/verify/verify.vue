@@ -26,9 +26,14 @@
     </view>
 
     <!-- 认证表单 -->
-    <view v-if="verificationStatus !== 1" class="form-section">
+    <view class="form-section">
       <view class="section-header">
-        <text class="section-title">填写认证信息</text>
+        <view class="section-title-row">
+          <uni-icons type="locked" size="20" color="#E74C3C"></uni-icons>
+          <text class="section-title">认证信息</text>
+          <text class="auth-badge">需审核</text>
+        </view>
+        <text class="section-desc">{{ verificationStatus === 1 ? '修改认证信息需要重新审核' : '请如实填写，提交后将进行审核' }}</text>
       </view>
 
       <!-- 真实姓名 -->
@@ -191,18 +196,54 @@
         </view>
       </view>
 
+      <!-- 对母校寄语 -->
+      <view class="form-item">
+        <text class="form-label optional">对母校寄语</text>
+        <textarea
+          class="form-textarea"
+          v-model="formData.message"
+          placeholder="请输入对母校的寄语"
+          maxlength="200"
+        />
+      </view>
+
+      <!-- 校友卡图片 -->
+      <view class="photo-section">
+        <view class="section-header">
+          <text class="section-title required-title">校友卡图片（本人近期照片）</text>
+        </view>
+        <uni-file-picker
+          v-model="formData.cardPhoto"
+          file-mediatype="image"
+          mode="grid"
+          :limit="1"
+          @select="onCardPhotoSelect"
+          @delete="onCardPhotoDelete"
+        ></uni-file-picker>
+        <text class="upload-tips">用于制作校友卡，请上传清晰的正面照片</text>
+        <view class="checkbox-row">
+          <checkbox-group @change="onSetAsAvatarChange">
+            <label class="checkbox-label">
+              <checkbox :checked="formData.setAsAvatar" color="var(--primary-color)" />
+              <text>同时设为头像</text>
+            </label>
+          </checkbox-group>
+        </view>
+      </view>
+
       <!-- 其他学历（选填） -->
       <view class="education-section mt-section">
         <view class="education-header">
           <view>
             <text class="form-label optional">其他学历</text>
-            <text class="edu-section-hint">非本校的学习经历</text>
+            <text class="extended-badge">无需审核</text>
           </view>
           <view v-if="formData.otherEducations.length < 3" class="add-btn" @click="addOtherEducation">
             <uni-icons type="plusempty" size="16" color="var(--primary-color)"></uni-icons>
             <text class="add-text">添加</text>
           </view>
         </view>
+        <text class="section-desc">非本校的学习经历，保存后立即生效</text>
 
         <view v-if="formData.otherEducations.length === 0" class="edu-empty">
           <text class="edu-empty-text">暂无其他学历，可点击右上角添加</text>
@@ -286,9 +327,18 @@
         </view>
       </view>
 
+      <!-- 扩展资料 -->
+      <view class="section-divider">
+        <view class="section-title-row">
+          <text class="section-title">扩展资料</text>
+          <text class="extended-badge">无需审核</text>
+        </view>
+        <text class="section-desc">完善个人信息，保存后立即生效</text>
+      </view>
+
       <!-- 就业状态 -->
       <view class="form-item">
-        <text class="form-label required">就业状态</text>
+        <text class="form-label optional">就业状态</text>
         <view class="radio-group-row">
           <view
             v-for="opt in employmentOptions"
@@ -304,7 +354,7 @@
 
       <!-- 工作单位（仅在职显示） -->
       <view v-if="formData.employmentStatus === 'employed'" class="form-item">
-        <text class="form-label required">工作单位</text>
+        <text class="form-label optional">工作单位</text>
         <input
           class="form-input"
           v-model="formData.company"
@@ -314,7 +364,7 @@
 
       <!-- 职位（仅在职显示） -->
       <view v-if="formData.employmentStatus === 'employed'" class="form-item">
-        <text class="form-label required">职位</text>
+        <text class="form-label optional">职位</text>
         <input
           class="form-input"
           v-model="formData.position"
@@ -332,65 +382,14 @@
         />
       </view>
 
-      <!-- 对母校寄语 -->
-      <view class="form-item">
-        <text class="form-label optional">对母校寄语</text>
-        <textarea
-          class="form-textarea"
-          v-model="formData.message"
-          placeholder="请输入对母校的寄语"
-          maxlength="200"
-        />
-      </view>
-
       <!-- 现居城市 -->
       <view class="form-item">
-        <text class="form-label required">现居城市</text>
+        <text class="form-label optional">现居城市</text>
         <input
           class="form-input"
           v-model="formData.city"
           placeholder="请输入现居城市"
         />
-      </view>
-
-      <!-- 校友卡图片 -->
-      <view class="photo-section">
-        <view class="section-header">
-          <text class="section-title required-title">校友卡图片（本人近期照片）</text>
-        </view>
-        <uni-file-picker
-          v-model="formData.cardPhoto"
-          file-mediatype="image"
-          mode="grid"
-          :limit="1"
-          @select="onCardPhotoSelect"
-          @delete="onCardPhotoDelete"
-        ></uni-file-picker>
-        <text class="upload-tips">用于制作校友卡，请上传清晰的正面照片</text>
-        <view class="checkbox-row">
-          <checkbox-group @change="onSetAsAvatarChange">
-            <label class="checkbox-label">
-              <checkbox :checked="formData.setAsAvatar" color="var(--primary-color)" />
-              <text>同时设为头像</text>
-            </label>
-          </checkbox-group>
-        </view>
-      </view>
-
-      <!-- 学历证书 -->
-      <view class="photo-section">
-        <view class="section-header">
-          <text class="section-title optional">学历证书</text>
-        </view>
-        <uni-file-picker
-          v-model="formData.diplomaPhoto"
-          file-mediatype="image"
-          mode="grid"
-          :limit="3"
-          @select="onDiplomaSelect"
-          @delete="onDiplomaDelete"
-        ></uni-file-picker>
-        <text class="upload-tips">可上传毕业证、学位证等</text>
       </view>
 
       <!-- 证明材料（如果需要） -->
@@ -413,32 +412,6 @@
       <button class="submit-btn" :loading="submitting" @click="submitVerification">
         {{ verificationStatus === 2 ? '重新提交认证' : '提交认证' }}
       </button>
-    </view>
-
-    <!-- 已认证信息展示 -->
-    <view v-else class="verified-section">
-      <view class="verified-info">
-        <view class="info-item">
-          <text class="info-label">真实姓名</text>
-          <text class="info-value">{{ userProfile.realName }}</text>
-        </view>
-        <view class="info-item">
-          <text class="info-label">认证时间</text>
-          <text class="info-value">{{ formatTime(userProfile.alumniVerifyTime) }}</text>
-        </view>
-        <view v-for="(edu, index) in userProfile.educations" :key="index" class="edu-info">
-          <text class="edu-info-title">{{ getDegreeLabel(edu.degree) }} {{ edu.isPrimary ? '（主要）' : '' }}</text>
-          <text class="edu-info-detail">{{ edu.enrollmentYear }} - {{ edu.graduationYear || '至今' }}</text>
-          <text v-if="edu.college" class="edu-info-detail">{{ edu.college }} {{ edu.major }}</text>
-        </view>
-      </view>
-      <view class="verified-actions">
-        <button class="card-btn" @click="navigateToCard">查看校友卡</button>
-        <button class="profile-btn" @click="navigateToProfile">编辑个人资料</button>
-      </view>
-      <view class="action-tips">
-        <text class="tips-text">点击"编辑个人资料"可修改认证信息和扩展资料</text>
-      </view>
     </view>
   </view>
 </template>
@@ -572,6 +545,14 @@ export default {
       const localDegrees = this.schoolConfig.localDegrees || ['bachelor', 'master', 'doctor']
       return this.allDegreeOptions.filter(d => localDegrees.includes(d.value))
     },
+    // 本校学历（只显示本校学历）
+    localEducations() {
+      return (this.userProfile.educations || []).filter(e => e.isLocal === true)
+    },
+    // 其他学历
+    otherEducations() {
+      return (this.userProfile.educations || []).filter(e => e.isLocal === false)
+    },
     employmentOptions() {
       return [
         { value: 'employed', label: '在职' },
@@ -581,7 +562,7 @@ export default {
       ]
     }
   },
-  onLoad() {
+  onLoad(options) {
     this.initYearOptions()
     this.loadData()
   },
@@ -660,6 +641,9 @@ export default {
           if (profileRes.data.city) {
             this.formData.city = profileRes.data.city
           }
+          if (profileRes.data.cardPhotoUrl) {
+            this.formData.cardPhoto = [{ url: profileRes.data.cardPhotoUrl }]
+          }
           if (profileRes.data.educations && profileRes.data.educations.length > 0) {
             const localEds = profileRes.data.educations.filter(e => e.isLocal !== false)
             const otherEds = profileRes.data.educations.filter(e => e.isLocal === false)
@@ -688,6 +672,26 @@ export default {
     getDegreeLabel(degree) {
       const option = this.allDegreeOptions.find(d => d.value === degree)
       return option ? option.label : ''
+    },
+    getInterestLabel(interest) {
+      const interestMap = {
+        sports: '运动健身',
+        reading: '阅读',
+        music: '音乐',
+        movie: '电影',
+        travel: '旅行',
+        photography: '摄影',
+        cooking: '美食烹饪',
+        gaming: '游戏',
+        art: '艺术',
+        tech: '科技数码',
+        investment: '投资理财',
+        volunteer: '公益志愿',
+        pet: '宠物',
+        fashion: '时尚',
+        handcraft: '手工DIY'
+      }
+      return interestMap[interest] || interest
     },
     getYearIndex(year) {
       return this.yearOptions.indexOf(year)
@@ -853,22 +857,6 @@ export default {
         }
       }
 
-      if (this.formData.employmentStatus === 'employed') {
-        if (!this.formData.company) {
-          uni.showToast({ title: '请输入工作单位', icon: 'none' })
-          return false
-        }
-        if (!this.formData.position) {
-          uni.showToast({ title: '请输入职位', icon: 'none' })
-          return false
-        }
-      }
-
-      if (!this.formData.city) {
-        uni.showToast({ title: '请输入现居城市', icon: 'none' })
-        return false
-      }
-
       if (!this.formData.cardPhoto || this.formData.cardPhoto.length === 0) {
         uni.showToast({ title: '请上传校友卡照片', icon: 'none' })
         return false
@@ -988,16 +976,6 @@ export default {
       if (!timestamp) return ''
       const date = new Date(timestamp)
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-    },
-    navigateToCard() {
-      uni.navigateTo({
-        url: '/pages/alumni/card/card'
-      })
-    },
-    navigateToProfile() {
-      uni.navigateTo({
-        url: '/pages/alumni/profile/profile'
-      })
     }
   }
 }
@@ -1065,6 +1043,42 @@ export default {
 .section-title {
   font-size: 32rpx;
   color: #333;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.auth-badge {
+  padding: 4rpx 12rpx;
+  background: #ffebee;
+  color: #e74c3c;
+  font-size: 22rpx;
+  border-radius: 8rpx;
+  margin-left: 8rpx;
+}
+
+.extended-badge {
+  padding: 4rpx 12rpx;
+  background: #e8f5e9;
+  color: #27ae60;
+  font-size: 22rpx;
+  border-radius: 8rpx;
+  margin-left: 8rpx;
+}
+
+.section-desc {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 8rpx;
+}
+
+.section-divider {
+  margin: 32rpx 0 24rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 2rpx solid #f0f0f0;
 }
 
 .section-subtitle {
@@ -1339,6 +1353,17 @@ export default {
   color: #333;
 }
 
+.info-item.secondary {
+  margin-top: 20rpx;
+  opacity: 0.6;
+}
+
+.info-item.secondary .info-label,
+.info-item.secondary .info-value {
+  font-size: 24rpx;
+  color: #999;
+}
+
 .edu-info {
   padding: 20rpx 0;
   border-bottom: 1rpx solid #f0f0f0;
@@ -1356,6 +1381,38 @@ export default {
   font-size: 26rpx;
   color: #666;
   display: block;
+}
+
+.section-divider {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  margin-top: 30rpx;
+  margin-bottom: 15rpx;
+  padding-bottom: 10rpx;
+  border-bottom: 2rpx solid #e0e0e0;
+}
+
+.bio-content {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.6;
+  padding: 20rpx 0;
+}
+
+.interests-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15rpx;
+  padding: 20rpx 0;
+}
+
+.interest-tag {
+  padding: 10rpx 20rpx;
+  background-color: #f5f5f5;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  color: #666;
 }
 
 .verified-actions {

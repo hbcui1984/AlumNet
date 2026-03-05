@@ -361,10 +361,14 @@ export default {
         const res = await activityCo.publishActivity(activityData)
 
         if (res.errCode === 0) {
-          uni.showToast({ title: '发布成功', icon: 'success' })
-          setTimeout(() => {
-            uni.navigateBack()
-          }, 1500)
+          uni.showModal({
+            title: '提交成功',
+            content: '活动已提交，等待管理员审核',
+            showCancel: false,
+            success: () => {
+              uni.navigateBack()
+            }
+          })
         } else {
           uni.showToast({ title: res.errMsg, icon: 'none' })
         }

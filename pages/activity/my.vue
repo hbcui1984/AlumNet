@@ -62,6 +62,10 @@
                 <uni-icons type="person" size="14" color="#999"></uni-icons>
                 <text>{{ activity.currentParticipants || 0 }}人报名</text>
               </view>
+              <view v-if="currentTab === 'published' && canOperate(activity)" class="action-btns">
+                <text v-if="activity.status !== 3 && activity.status !== 4" class="btn-action" @click.stop="endActivity(activity)">结束</text>
+                <text v-if="activity.status !== 4" class="btn-cancel" @click.stop="cancelActivity(activity)">取消</text>
+              </view>
               <view v-if="currentTab === 'signed' && activity.signupTime" class="meta-item">
                 <text class="signup-time">报名于 {{ formatSignupTime(activity.signupTime) }}</text>
               </view>
@@ -223,6 +227,57 @@ export default {
     goToPublish() {
       uni.navigateTo({
         url: '/pages/activity/publish'
+      })
+    },
+    canOperate(activity) {
+      return activity.auditStatus === 1 && activity.status !== 3 && activity.status !== 4
+    },
+    cancelActivity(activity) {
+      uni.showModal({
+        title: '确认取消',
+        content: '确定要取消这个活动吗？',
+        success: async (res) => {
+          if (res.confirm) {
+            try {
+              const activityCo = uniCloud.importObject('alumni-activity-co')
+              const result = await activityCo.cancelActivity(activity._id)
+              if (result.errCode === 0) {
+                uni.showToast({ title: '已取消', icon: 'success' })
+                this.pageNum = 1
+                this.activityList = []
+                this.loadActivityList()
+              } else {
+                uni.showToast({ title: result.errMsg, icon: 'none' })
+              }
+            } catch (e) {
+              uni.showToast({ title: '操作失败', icon: 'none' })
+            }
+          }
+        }
+      })
+    },
+    endActivity(activity) {
+      uni.showModal({
+        title: '确认结束',
+        content: '确定要结束这个活动吗？',
+        success: async (res) => {
+          if (res.confirm) {
+            try {
+              const activityCo = uniCloud.importObject('alumni-activity-co')
+              const result = await activityCo.endActivity(activity._id)
+              if (result.errCode === 0) {
+                uni.showToast({ title: '已结束', icon: 'success' })
+                this.pageNum = 1
+                this.activityList = []
+                this.loadActivityList()
+              } else {
+                uni.showToast({ title: result.errMsg, icon: 'none' })
+              }
+            } catch (e) {
+              uni.showToast({ title: '操作失败', icon: 'none' })
+            }
+          }
+        }
       })
     }
   }
@@ -431,6 +486,21 @@ export default {
 
 .meta-item text {
   margin-left: 4px;
+}
+
+.action-btns {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-action {
+  font-size: 13px;
+  color: #2B5CE6;
+}
+
+.btn-cancel {
+  font-size: 13px;
+  color: #f44336;
 }
 
 .signup-time {

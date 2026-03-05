@@ -93,8 +93,8 @@
 						"icon": "contact"
 					},
 					{
-						"title": "校友认证信息",
-						"to": "/pages/alumni/verify/verify",
+						"title": "我的完整信息",
+						"to": "/pages/alumni/profile/detail",
 						"icon": "auth"
 					},
 						// #ifdef APP-PLUS

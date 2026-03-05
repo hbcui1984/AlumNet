@@ -181,7 +181,7 @@ export default {
     },
 
     goToProfileEdit() {
-      uni.navigateTo({ url: '/pages/alumni/verify/verify' })
+      uni.navigateTo({ url: '/pages/alumni/profile/detail' })
     },
     // 去认证
     goToVerify() {
@@ -252,6 +252,7 @@ export default {
 .alumni-info {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 40rpx;
 }
 
@@ -261,8 +262,12 @@ export default {
 
 .info-item {
   display: flex;
-  margin-bottom: 20rpx;
+  margin-bottom: 16rpx;
   font-size: 28rpx;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
 }
 
 .label {

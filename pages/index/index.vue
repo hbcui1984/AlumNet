@@ -15,13 +15,6 @@
           <text class="school-slogan">{{ schoolConfig.branding?.slogan || '欢迎回家' }}</text>
         </view>
       </view>
-      <view class="user-action" @click="goToProfile">
-        <image
-          class="user-avatar"
-          :src="userInfo.avatar || '/static/default-avatar.png'"
-          mode="aspectFill"
-        ></image>
-      </view>
     </view>
 
     <!-- 主要内容区域 -->
