@@ -1,74 +1,45 @@
 {
   "bsonType": "object",
-  "required": ["organizationId", "userId", "role", "status"],
-  "permission": {
-    "read": "doc.userId == auth.uid",
-    "create": "auth.uid != null",
-    "update": false,
-    "delete": false
-  },
+  "required": ["organizationId", "userId", "joinTime"],
   "properties": {
     "_id": {
-      "bsonType": "string"
+      "description": "成员记录ID"
     },
     "organizationId": {
       "bsonType": "string",
+      "title": "组织ID",
       "description": "组织ID",
       "foreignKey": "alumni-organizations._id"
     },
     "userId": {
       "bsonType": "string",
-      "description": "成员用户ID",
+      "title": "用户ID",
+      "description": "用户ID",
       "foreignKey": "uni-id-users._id"
     },
     "role": {
       "bsonType": "string",
-      "description": "角色: creator/admin/member",
+      "title": "角色",
+      "description": "creator-创建者/admin-管理员/member-普通成员",
       "enum": ["creator", "admin", "member"],
-      "defaultValue": "member"
-    },
-    "title": {
-      "bsonType": "string",
-      "description": "职务头衔",
-      "maxLength": 50
+      "default": "member"
     },
     "status": {
       "bsonType": "int",
-      "description": "状态: 0待审核 1正常 2已退出 3已移除",
-      "enum": [0, 1, 2, 3],
-      "defaultValue": 0
+      "title": "状态",
+      "description": "0-待审核 1-已加入 -1-已退出",
+      "enum": [-1, 0, 1],
+      "default": 0
     },
     "joinTime": {
       "bsonType": "timestamp",
+      "title": "加入时间",
       "description": "加入时间"
     },
-    "createTime": {
+    "leaveTime": {
       "bsonType": "timestamp",
-      "description": "申请时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "updateTime": {
-      "bsonType": "timestamp",
-      "description": "更新时间"
+      "title": "退出时间",
+      "description": "退出时间"
     }
-  },
-  "indexes": [
-    {
-      "name": "idx_org_user",
-      "keyPath": ["organizationId", "userId"],
-      "unique": true
-    },
-    {
-      "name": "idx_user_status",
-      "keyPath": ["userId", "status"],
-      "unique": false
-    },
-    {
-      "name": "idx_org_role",
-      "keyPath": ["organizationId", "role", "status"],
-      "unique": false
-    }
-  ]
+  }
 }
