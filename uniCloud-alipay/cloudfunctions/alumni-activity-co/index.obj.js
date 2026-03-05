@@ -213,14 +213,14 @@ module.exports = {
       // 检查用户是否已认证
       const userRes = await db.collection('uni-id-users')
         .doc(this.uid)
-        .field({ verifyStatus: true })
+        .field({ alumniStatus: true })
         .get()
-      
+
       if (!userRes.data || userRes.data.length === 0) {
         throw { errCode: 'USER_NOT_FOUND', errMsg: '用户不存在' }
       }
-      
-      if (userRes.data[0].verifyStatus !== 1) {
+
+      if (userRes.data[0].alumniStatus !== 1) {
         throw { errCode: 'NOT_VERIFIED', errMsg: '仅认证校友可发布活动' }
       }
       
@@ -561,6 +561,67 @@ module.exports = {
           activityCount: 0
         }
       }
+    }
+  },
+
+  /**
+   * 取消活动
+   */
+  async cancelActivity(activityId) {
+    try {
+      checkLogin(this.uid)
+      if (!activityId) throw { errCode: 'INVALID_PARAM', errMsg: '活动ID不能为空' }
+
+      const activityRes = await db.collection('alumni-activities').doc(activityId).get()
+      if (!activityRes.data || activityRes.data.length === 0) {
+        throw { errCode: 'ACTIVITY_NOT_FOUND', errMsg: '活动不存在' }
+      }
+
+      const activity = activityRes.data[0]
+      if (activity.organizerId !== this.uid) {
+        throw { errCode: 'NO_PERMISSION', errMsg: '无权操作此活动' }
+      }
+      if (activity.status === 4) throw { errCode: 'ALREADY_CANCELLED', errMsg: '活动已取消' }
+
+      await db.collection('alumni-activities').doc(activityId).update({
+        status: 4,
+        updateTime: Date.now()
+      })
+
+      return { errCode: 0, errMsg: '活动已取消' }
+    } catch (e) {
+      return { errCode: e.errCode || 'CANCEL_FAILED', errMsg: e.errMsg || '取消失败' }
+    }
+  },
+
+  /**
+   * 结束活动
+   */
+  async endActivity(activityId) {
+    try {
+      checkLogin(this.uid)
+      if (!activityId) throw { errCode: 'INVALID_PARAM', errMsg: '活动ID不能为空' }
+
+      const activityRes = await db.collection('alumni-activities').doc(activityId).get()
+      if (!activityRes.data || activityRes.data.length === 0) {
+        throw { errCode: 'ACTIVITY_NOT_FOUND', errMsg: '活动不存在' }
+      }
+
+      const activity = activityRes.data[0]
+      if (activity.organizerId !== this.uid) {
+        throw { errCode: 'NO_PERMISSION', errMsg: '无权操作此活动' }
+      }
+      if (activity.status === 3) throw { errCode: 'ALREADY_ENDED', errMsg: '活动已结束' }
+      if (activity.status === 4) throw { errCode: 'ALREADY_CANCELLED', errMsg: '活动已取消' }
+
+      await db.collection('alumni-activities').doc(activityId).update({
+        status: 3,
+        updateTime: Date.now()
+      })
+
+      return { errCode: 0, errMsg: '活动已结束' }
+    } catch (e) {
+      return { errCode: e.errCode || 'END_FAILED', errMsg: e.errMsg || '结束失败' }
     }
   }
 }
