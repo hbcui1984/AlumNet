@@ -1,427 +1,272 @@
 <template>
-  <view class="page-container">
-    <scroll-view class="main-content" scroll-y>
-      <!-- Logo上传 -->
-      <view class="section">
-        <text class="section-title">组织Logo</text>
-        <view class="upload-area" @click="chooseLogo">
-          <image
-            v-if="form.logo"
-            class="upload-preview"
-            :src="form.logo"
-            mode="aspectFill"
-          ></image>
-          <view v-else class="upload-placeholder">
-            <uni-icons type="plusempty" size="32" color="#ccc"></uni-icons>
-            <text>上传Logo</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- 封面上传 -->
-      <view class="section">
-        <text class="section-title">封面图片</text>
-        <view class="upload-area cover-area" @click="chooseCover">
-          <image
-            v-if="form.cover"
-            class="upload-preview-cover"
-            :src="form.cover"
-            mode="aspectFill"
-          ></image>
-          <view v-else class="upload-placeholder">
-            <uni-icons type="plusempty" size="32" color="#ccc"></uni-icons>
-            <text>上传封面</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- 基本信息 -->
-      <view class="section">
-        <text class="section-title">基本信息</text>
-
-        <view class="form-item">
-          <text class="form-label">组织名称</text>
-          <input class="form-input" v-model="form.name" placeholder="请输入组织名称" maxlength="50" />
+  <view class="create-page">
+    <scroll-view class="form-scroll" scroll-y>
+      <view class="form-container">
+        <view class="form-item required">
+          <text class="item-label">组织名称</text>
+          <input class="item-input" v-model="formData.name" placeholder="请输入组织名称" maxlength="50" />
         </view>
 
-        <view class="form-item">
-          <text class="form-label">组织类型</text>
-          <picker
-            :range="typeOptions"
-            range-key="label"
-            :value="typeIndex"
-            @change="onTypeChange"
-            :disabled="isEdit"
-          >
+        <view class="form-item required">
+          <text class="item-label">组织类型</text>
+          <picker :value="typeIndex" :range="typeOptions" range-key="label" @change="onTypeChange">
             <view class="picker-value">
-              <text :class="{ placeholder: typeIndex < 0 }">{{ typeIndex >= 0 ? typeOptions[typeIndex].label : '请选择组织类型' }}</text>
-              <uni-icons type="arrowdown" size="14" color="#999"></uni-icons>
+              {{ formData.type ? getTypeLabel(formData.type) : '请选择组织类型' }}
+              <uni-icons type="arrowright" size="14" color="#999"></uni-icons>
             </view>
           </picker>
         </view>
 
-        <!-- 类型专属字段 -->
-        <view v-if="form.type === 'regional'" class="form-item">
-          <text class="form-label">所在地区</text>
-          <input class="form-input" v-model="form.regionText" placeholder="如：北京市 海淀区" />
-        </view>
-
-        <view v-if="form.type === 'industry'" class="form-item">
-          <text class="form-label">所属行业</text>
-          <input class="form-input" v-model="form.industry" placeholder="如：互联网、金融、教育" />
-        </view>
-
-        <view v-if="form.type === 'college'" class="form-item">
-          <text class="form-label">所属院系</text>
-          <input class="form-input" v-model="form.college" placeholder="如：计算机学院" />
-        </view>
-
-        <view v-if="form.type === 'interest'" class="form-item">
-          <text class="form-label">兴趣主题</text>
-          <input class="form-input" v-model="form.interest" placeholder="如：摄影、跑步、读书" />
+        <view class="form-item">
+          <text class="item-label">组织Logo</text>
+          <view class="upload-logo" @click="chooseImage">
+            <image v-if="formData.logo" class="logo-preview" :src="formData.logo" mode="aspectFill"></image>
+            <view v-else class="logo-placeholder">
+              <uni-icons type="image" size="40" color="#ccc"></uni-icons>
+              <text>点击上传</text>
+            </view>
+          </view>
         </view>
 
         <view class="form-item">
-          <text class="form-label">组织简介</text>
-          <textarea
-            class="form-textarea"
-            v-model="form.description"
-            placeholder="介绍一下你的组织"
-            maxlength="1000"
-          ></textarea>
+          <text class="item-label">组织简介</text>
+          <textarea class="item-textarea" v-model="formData.description" placeholder="请简要介绍组织" maxlength="200"></textarea>
         </view>
 
-        <!-- 公告（仅编辑模式） -->
-        <view v-if="isEdit" class="form-item">
-          <text class="form-label">组织公告</text>
-          <textarea
-            class="form-textarea"
-            v-model="form.announcement"
-            placeholder="发布组织公告"
-            maxlength="500"
-          ></textarea>
+        <view class="form-item required">
+          <text class="item-label">加入方式</text>
+          <radio-group @change="e => formData.joinType = e.detail.value">
+            <label class="radio-item" v-for="item in joinTypeOptions" :key="item.value">
+              <radio :value="item.value" :checked="formData.joinType === item.value" color="#2B5CE6" />
+              <text>{{ item.label }}</text>
+            </label>
+          </radio-group>
         </view>
       </view>
     </scroll-view>
 
-    <!-- 底部提交按钮 -->
-    <view class="footer">
-      <button class="submit-btn" :loading="submitting" @click="submit">
-        {{ isEdit ? '保存修改' : '创建组织' }}
-      </button>
+    <view class="bottom-bar">
+      <button class="submit-btn" @click="onSubmit">创建组织</button>
     </view>
   </view>
 </template>
 
 <script>
-const orgCo = uniCloud.importObject('alumni-organization-co')
-
-const TYPE_OPTIONS = [
-  { label: '地方分会', value: 'regional' },
-  { label: '行业分会', value: 'industry' },
-  { label: '院系分会', value: 'college' },
-  { label: '兴趣分会', value: 'interest' }
-]
-
 export default {
   data() {
     return {
-      isEdit: false,
-      orgId: '',
-      submitting: false,
-      typeOptions: TYPE_OPTIONS,
-      form: {
+      formData: {
         name: '',
         type: '',
         logo: '',
-        cover: '',
         description: '',
-        announcement: '',
-        regionText: '',
-        industry: '',
-        college: '',
-        interest: ''
-      }
+        joinType: 'open'
+      },
+      typeOptions: [
+        { value: 'region', label: '地域组织' },
+        { value: 'industry', label: '行业组织' },
+        { value: 'grade', label: '年级组织' },
+        { value: 'interest', label: '兴趣组织' }
+      ],
+      joinTypeOptions: [
+        { value: 'open', label: '开放加入' },
+        { value: 'audit', label: '审核加入' },
+        { value: 'invite', label: '邀请加入' }
+      ]
     }
   },
   computed: {
     typeIndex() {
-      return TYPE_OPTIONS.findIndex(t => t.value === this.form.type)
-    }
-  },
-  onLoad(options) {
-    if (options.id) {
-      this.isEdit = true
-      this.orgId = options.id
-      uni.setNavigationBarTitle({ title: '编辑组织' })
-      this.loadOrgData()
+      return this.typeOptions.findIndex(t => t.value === this.formData.type)
     }
   },
   methods: {
     onTypeChange(e) {
-      const index = e.detail?.value ?? e
-      this.form.type = TYPE_OPTIONS[index].value
+      this.formData.type = this.typeOptions[e.detail.value].value
     },
-    async loadOrgData() {
-      try {
-        const res = await orgCo.getDetail(this.orgId)
-        if (res.errCode === 0) {
-          const d = res.data
-          this.form.name = d.name || ''
-          this.form.type = d.type || ''
-          this.form.logo = d.logo || ''
-          this.form.cover = d.cover || ''
-          this.form.description = d.description || ''
-          this.form.announcement = d.announcement || ''
-          this.form.industry = d.industry || ''
-          this.form.college = d.college || ''
-          this.form.interest = d.interest || ''
-          if (d.region) {
-            this.form.regionText = [d.region.province, d.region.city, d.region.district].filter(Boolean).join(' ')
-          }
-        }
-      } catch (e) {
-        console.error('加载组织数据失败', e)
-        uni.showToast({ title: '加载失败', icon: 'none' })
-      }
+    getTypeLabel(type) {
+      const item = this.typeOptions.find(t => t.value === type)
+      return item ? item.label : ''
     },
-    chooseLogo() {
-      this.chooseAndUpload('logo')
-    },
-    chooseCover() {
-      this.chooseAndUpload('cover')
-    },
-    chooseAndUpload(field) {
+    chooseImage() {
       uni.chooseImage({
         count: 1,
         sizeType: ['compressed'],
-        success: async (res) => {
-          const tempPath = res.tempFilePaths[0]
-          uni.showLoading({ title: '上传中' })
-          try {
-            const uploadRes = await uniCloud.uploadFile({
-              filePath: tempPath,
-              cloudPath: `org-${field}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`
-            })
-            this.form[field] = uploadRes.fileID
-          } catch (e) {
-            console.error('上传失败', e)
-            uni.showToast({ title: '上传失败', icon: 'none' })
-          } finally {
-            uni.hideLoading()
-          }
+        sourceType: ['album', 'camera'],
+        success: (res) => {
+          this.uploadImage(res.tempFilePaths[0])
         }
       })
     },
-    parseRegion(text) {
-      if (!text) return null
-      const parts = text.trim().split(/\s+/)
-      return {
-        province: parts[0] || '',
-        city: parts[1] || '',
-        district: parts[2] || ''
+    async uploadImage(filePath) {
+      try {
+        uni.showLoading({ title: '上传中' })
+        const result = await uniCloud.uploadFile({
+          filePath,
+          cloudPath: `org-logos/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
+        })
+        this.formData.logo = result.fileID
+        uni.hideLoading()
+      } catch (e) {
+        console.error('上传失败', e)
+        uni.showToast({ title: '上传失败', icon: 'none' })
       }
     },
-    async submit() {
-      if (!this.form.name.trim()) {
-        return uni.showToast({ title: '请输入组织名称', icon: 'none' })
+    async onSubmit() {
+      if (!this.formData.name.trim()) {
+        uni.showToast({ title: '请输入组织名称', icon: 'none' })
+        return
       }
-      if (!this.form.type) {
-        return uni.showToast({ title: '请选择组织类型', icon: 'none' })
-      }
-
-      this.submitting = true
-
-      const data = {
-        name: this.form.name,
-        type: this.form.type,
-        logo: this.form.logo,
-        cover: this.form.cover,
-        description: this.form.description
-      }
-
-      // 类型专属字段
-      if (this.form.type === 'regional') {
-        data.region = this.parseRegion(this.form.regionText)
-      }
-      if (this.form.type === 'industry') {
-        data.industry = this.form.industry
-      }
-      if (this.form.type === 'college') {
-        data.college = this.form.college
-      }
-      if (this.form.type === 'interest') {
-        data.interest = this.form.interest
+      if (!this.formData.type) {
+        uni.showToast({ title: '请选择组织类型', icon: 'none' })
+        return
       }
 
       try {
-        let res
-        if (this.isEdit) {
-          data.announcement = this.form.announcement
-          res = await orgCo.update(this.orgId, data)
-        } else {
-          res = await orgCo.create(data)
-        }
+        uni.showLoading({ title: '创建中' })
+        const orgCo = uniCloud.importObject('alumni-organization-co')
+        const res = await orgCo.createOrganization({
+          ...this.formData,
+          status: 1
+        })
 
         if (res.errCode === 0) {
-          uni.showToast({ title: this.isEdit ? '保存成功' : '创建成功', icon: 'success' })
-          setTimeout(() => {
-            if (this.isEdit) {
+          uni.showModal({
+            title: '提交成功',
+            content: '组织已提交，等待管理员审核',
+            showCancel: false,
+            success: () => {
               uni.navigateBack()
-            } else {
-              // 创建成功后跳转到详情页
-              uni.redirectTo({
-                url: `/pages/alumni/organizations/detail?id=${res.data.id}`
-              })
             }
-          }, 1500)
+          })
         } else {
-          uni.showToast({ title: res.errMsg || '操作失败', icon: 'none' })
+          uni.showToast({ title: res.errMsg, icon: 'none' })
         }
       } catch (e) {
-        uni.showToast({ title: e.errMsg || '操作失败', icon: 'none' })
+        console.error('创建失败', e)
+        uni.showToast({ title: '创建失败', icon: 'none' })
       } finally {
-        this.submitting = false
+        uni.hideLoading()
       }
     }
   }
 }
 </script>
 
-<style lang="scss" scoped>
-.page-container {
+<style scoped>
+.create-page {
   display: flex;
   flex-direction: column;
   height: 100vh;
   background-color: #f5f5f5;
 }
 
-.main-content {
+.form-scroll {
   flex: 1;
+  padding-bottom: 80px;
 }
 
-.section {
-  margin: 20rpx;
-  padding: 24rpx;
+.form-container {
   background-color: #fff;
-  border-radius: 16rpx;
-}
-
-.section-title {
-  font-size: 30rpx;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 20rpx;
-  display: block;
-}
-
-.upload-area {
-  width: 160rpx;
-  height: 160rpx;
-  border-radius: 16rpx;
-  overflow: hidden;
-  border: 2rpx dashed #ddd;
-}
-
-.cover-area {
-  width: 100%;
-  height: 240rpx;
-}
-
-.upload-preview {
-  width: 160rpx;
-  height: 160rpx;
-}
-
-.upload-preview-cover {
-  width: 100%;
-  height: 240rpx;
-}
-
-.upload-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: #fafafa;
-
-  text {
-    font-size: 24rpx;
-    color: #ccc;
-    margin-top: 8rpx;
-  }
+  border-radius: 12px;
+  padding: 16px;
+  margin: 10px;
 }
 
 .form-item {
-  margin-bottom: 24rpx;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
+  margin-bottom: 20px;
 }
 
-.form-label {
-  font-size: 28rpx;
-  color: #333;
-  margin-bottom: 12rpx;
+.form-item.required .item-label::before {
+  content: '*';
+  color: #ff5722;
+  margin-right: 4px;
+}
+
+.item-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
   display: block;
 }
 
-.form-input {
-  height: 80rpx;
-  padding: 0 20rpx;
-  background-color: #f8f8f8;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-}
-
-.form-textarea {
-  width: 100%;
-  min-height: 160rpx;
-  padding: 20rpx;
-  background-color: #f8f8f8;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  box-sizing: border-box;
+.item-input {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
 }
 
 .picker-value {
   display: flex;
-  flex-direction: row;
-  align-items: center;
   justify-content: space-between;
-  height: 80rpx;
-  padding: 0 20rpx;
-  background-color: #f8f8f8;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  color: #333;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
 }
 
-.placeholder {
+.upload-logo {
+  width: 100px;
+  height: 100px;
+  border: 1px dashed #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.logo-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.logo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
   color: #999;
+  font-size: 12px;
 }
 
-.footer {
-  padding: 20rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+.item-textarea {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
+  min-height: 100px;
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.radio-item text {
+  margin-left: 8px;
+  font-size: 14px;
+}
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
   background-color: #fff;
-  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
+  border-top: 1px solid #eee;
 }
 
 .submit-btn {
-  height: 88rpx;
-  line-height: 88rpx;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  width: 100%;
+  padding: 14px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #2B5CE6, #5B7FED);
   color: #fff;
-  font-size: 32rpx;
-  border-radius: 44rpx;
+  font-size: 16px;
+  font-weight: 600;
   border: none;
-
-  &::after {
-    border: none;
-  }
 }
 </style>
